@@ -845,18 +845,44 @@ body.tv-mode .btn:focus, body.tv-mode .icon:focus{
     clock.innerHTML = html;
   }
 
-  /* A cor do rola percorre o matiz: 140 graus (verde) até 0 (vermelho),
-     passando naturalmente por amarelo e laranja no caminho. A curva com
-     expoente 2.2 segura o verde na maior parte do tempo e despenca no fim,
-     que é a sensação de fôlego acabando — no último terço a queda é rápida,
-     e nos 10 segundos finais já chegou no vermelho, seja a rola de 3 ou de
-     10 minutos. A saturação sobe junto, deixando o fim mais gritante. */
-  var lastHue = -1;
+  /* A cor do rola percorre o matiz de 140 graus (verde) a 0 (vermelho).
+     A rola é dividida em três terços iguais — verde, amarelo, laranja — e os
+     últimos 10 segundos são uma faixa própria, medida em tempo ABSOLUTO e não
+     em fração: vermelho é vermelho, seja a rola de 3 ou de 10 minutos. Assim o
+     terço final vai só laranjando, e o vermelho fica reservado pro fim. */
+  var HEAT = [[0, 140], [1 / 3, 62], [2 / 3, 30]],
+      RED_MS = 10000,
+      RED_HUE = 14,
+      lastHue = -1;
+
   function heatColor(){
     var full = dur("work") * 1000;
     if (full <= 0) return null;
-    var t = Math.max(0, Math.min(1, 1 - st.leftMs / full));
-    return { h: 140 * (1 - Math.pow(t, 2.2)), s: 68 + 24 * t };
+    var left = Math.max(0, Math.min(full, st.leftMs)),
+        done = 1 - left / full,
+        hue;
+
+    if (left <= RED_MS) {
+      /* Expoente 1.6 para desabar rápido: aos 10 segundos já entra vermelho-
+         alaranjado e em 2 segundos está vermelho pleno, em vez de passar a
+         faixa toda a caminho dele. */
+      hue = RED_HUE * Math.pow(left / RED_MS, 1.6);
+    } else {
+      var tRed = Math.max(0.001, 1 - RED_MS / full),
+          pts = [HEAT[0]], i;
+      for (i = 1; i < HEAT.length; i++) if (HEAT[i][0] < tRed) pts.push(HEAT[i]);
+      pts.push([tRed, RED_HUE]);
+
+      hue = pts[pts.length - 1][1];
+      for (i = 1; i < pts.length; i++) {
+        if (done <= pts[i][0]) {
+          var p0 = pts[i - 1], p1 = pts[i], span = p1[0] - p0[0] || 1;
+          hue = p0[1] + (p1[1] - p0[1]) * ((done - p0[0]) / span);
+          break;
+        }
+      }
+    }
+    return { h: hue, s: 68 + 24 * done };
   }
 
   function paintHeat(){
