@@ -71,31 +71,33 @@ revisão:
 A sessão de desenvolvedor da LG expira a cada ~50 horas; renova-se pelo app
 Developer Mode na TV, sem reinstalar nada.
 
-### Aviso: webOS TV Lite não aceita sideload
+### O ares-install não funciona: use o install-tv.sh
 
 Testado em 2026-08-31 numa LG **webOS TV Lite 5.6.2** (imagem
-`starfish-atsc-secured`) e não funciona, apesar de todo o resto estar correto:
+`starfish-atsc-secured`). A instalação funciona, mas não pela ferramenta oficial:
 
-- Dev Mode ativo e SSH na porta 9922 funcionando (a TV só negocia `ssh-rsa`,
-  então o OpenSSH moderno precisa de `-o HostKeyAlgorithms=+ssh-rsa`)
-- `ares-install` não autentica: a lib `ssh2` embutida no CLI não aceita
-  `ssh-rsa`, e ela não lê `~/.ssh/config`
-- Instalando à mão dá no mesmo: `luna-send` é `rwx------ root`, e o
-  `luna-send-pub` conecta no hub mas nenhuma chamada retorna nada
+- A TV negocia **somente o algoritmo `ssh-rsa`**. O OpenSSH moderno recusa por
+  padrão e precisa de `-o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa`.
+- O `ares-install` usa a lib `ssh2` embutida, que também recusa `ssh-rsa` e
+  **não lê `~/.ssh/config`** — então não há como configurar. Ele falha com
+  "All configured authentication methods failed".
 
-O erro que revela a causa aparece ao declarar um appId:
+O `install-tv.sh` contorna isso usando o ssh do sistema e chamando o mesmo
+serviço Luna que o ares-install chamaria:
 
+```sh
+ares-novacom --device tv --getkey        # uma vez, pede a passphrase da TV
+./install-tv.sh 192.168.1.60 C0D62C      # IP e passphrase do Key Server
 ```
-LUNASERVICE ERROR -1031: LSCallFromApplication with application ID
-com.nailson.tatame but not privileged
-```
 
-O usuário `prisoner` do Dev Mode não tem privilégio no barramento Luna nessa
-build, então `com.webos.appInstallService/dev/install` é inalcançável. O pacote
-aqui é válido e deve instalar numa webOS TV normal — em Lite, não.
+Duas armadilhas que custaram tempo e valem registro:
 
-Nessas TVs o caminho é o navegador da própria TV abrindo a URL publicada, que
-já tem modo TV e navegação por controle.
+1. **`luna-send-pub` precisa da flag `-i`.** Com `-n 1` ele sai antes da
+   resposta chegar e imprime nada — o que parece um bloqueio de permissão e não
+   é. Como `-i` não termina sozinho, roda em segundo plano e mata-se depois.
+2. **`luna-send` é exclusivo do root** (`rwx------`), mas o `luna-send-pub` é
+   executável por todos e alcança `com.webos.appInstallService/dev/install`.
+   O usuário `prisoner` do Dev Mode tem privilégio suficiente.
 
 ## Arquivos
 
@@ -107,3 +109,4 @@ já tem modo TV e navegação por controle.
 | `webos/appinfo.json` | Manifesto do app de TV LG |
 | `webos/icon.png`, `largeIcon.png` | Ícones 80x80 e 130x130 exigidos pela webOS |
 | `build-webos.sh` | Copia o index.html e gera o `.ipk` |
+| `install-tv.sh` | Envia e instala o `.ipk` na TV por Dev Mode |
