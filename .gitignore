@@ -1,3 +1,7 @@
 node_modules
 dist
 .DS_Store
+
+# gerados por build-webos.sh
+webos/index.html
+webos/*.ipk

@@ -471,11 +471,18 @@ body.tv-mode .btn:focus, body.tv-mode .icon:focus{
   var DEFAULTS = { work:300, rest:60, prep:10, rounds:0, volume:90, sound:true, cues:true, vibrate:true, wake:true, tv:false };
   var LIMITS = { work:[30,3600], rest:[0,900], prep:[0,120], rounds:[0,30] };
   var KEY = "tatame-timer-v1";
-  var cfg = Object.assign({}, DEFAULTS);
+  var cfg = Object.assign({}, DEFAULTS), saved = {};
   try {
-    var saved = JSON.parse(localStorage.getItem(KEY) || "{}");
+    saved = JSON.parse(localStorage.getItem(KEY) || "{}");
     for (var k in DEFAULTS) if (saved[k] !== undefined) cfg[k] = saved[k];
   } catch (e) {}
+
+  /* Rodando como app de TV (webOS, Tizen) o modo TV já vem ligado, a não ser
+     que o usuário tenha escolhido o contrário alguma vez. */
+  if (saved.tv === undefined &&
+      /web0s|webos|tizen|smart-?tv|netcast|hbbtv/i.test(navigator.userAgent || "")) {
+    cfg.tv = true;
+  }
   function save(){ try { localStorage.setItem(KEY, JSON.stringify(cfg)); } catch (e) {} }
 
   /* ?tv=1 liga o modo TV direto pela URL, útil em aparelho que fica fixo na
@@ -946,6 +953,13 @@ body.tv-mode .btn:focus, body.tv-mode .icon:focus{
     else if (e.key === "r" || e.key === "R") reset();
     else if (e.key === "s" || e.key === "S") skip();
     else if (e.key === "t" || e.key === "T") { cfg.tv = !cfg.tv; save(); syncSheet(); }
+    /* Voltar do controle da LG. Com os ajustes abertos fecha só o painel; na
+       tela principal encerra o app, que é o que a webOS espera. Em navegador
+       comum esse código nunca chega. */
+    else if (e.keyCode === 461) {
+      if (!sheet.hidden) { sheet.hidden = true; try { btnPlay.focus(); } catch (err) {} }
+      else { try { window.close(); } catch (err) {} }
+    }
   });
 
   document.addEventListener("visibilitychange", function(){

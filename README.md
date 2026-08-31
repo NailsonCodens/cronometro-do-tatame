@@ -45,6 +45,32 @@ entra no modo TV sem precisar mexer nos ajustes.
   tabular figures — sem isso os dois pontos saem do centro e o número escorrega
   a cada segundo.
 
+## App para TV LG (webOS)
+
+O mesmo `index.html` roda como app nativo de webOS — apps de TV LG são HTML,
+CSS e JS, então não há reescrita, só empacotamento. Numa TV o modo TV liga
+sozinho, detectado pelo user agent, e o botão Voltar do controle fecha o app.
+
+Para gerar o pacote:
+
+```sh
+npm install -g @webos-tools/cli --registry=https://registry.npmjs.org/
+./build-webos.sh
+```
+
+Sai um `.ipk` de ~180 KB em `webos/`. Para instalar na TV, sem loja e sem
+revisão:
+
+1. Na TV, pela Content Store, instale o app **Developer Mode**, entre com sua
+   conta LG e ligue o Dev Mode. Anote o IP mostrado na tela.
+2. `ares-setup-device --add tv --info "host=<IP>" --info "port=9922" --info "username=prisoner"`
+3. `ares-novacom --device tv --getkey` — pede a senha exibida na TV
+4. `ares-install --device tv webos/*.ipk`
+5. `ares-launch --device tv com.nailson.tatame`
+
+A sessão de desenvolvedor da LG expira a cada ~50 horas; renova-se pelo app
+Developer Mode na TV, sem reinstalar nada.
+
 ## Arquivos
 
 | Arquivo | Para que serve |
@@ -52,3 +78,6 @@ entra no modo TV sem precisar mexer nos ajustes.
 | `index.html` | O app inteiro, com a logo embutida |
 | `logo-academia.png` | Logo da D.O Academy recortada no círculo, fundo transparente |
 | `logo-academia.jpg` | Foto original da logo |
+| `webos/appinfo.json` | Manifesto do app de TV LG |
+| `webos/icon.png`, `largeIcon.png` | Ícones 80x80 e 130x130 exigidos pela webOS |
+| `build-webos.sh` | Copia o index.html e gera o `.ipk` |
