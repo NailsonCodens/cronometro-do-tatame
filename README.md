@@ -20,9 +20,14 @@ Abra o `index.html`. Toque no número para começar ou pausar.
 Atalhos de teclado: espaço ou Enter começa/pausa, `R` zera, `S` pula a etapa,
 `T` liga o modo TV.
 
-Num controle de TV Box ou tecladinho sem fio o direcional já resolve: Enter
-começa e pausa, direita pula a etapa, esquerda zera, cima e baixo mexem no
-volume.
+No controle da TV o direcional já resolve. Em aparelho sem toque o foco começa
+no botão principal, então OK/Enter inicia e pausa, e o direcional anda entre
+zerar, iniciar, pular, tela cheia e ajustes — tudo alcançável sem mouse.
+
+Com o foco fora dos botões o direcional vira atalho direto: direita pula a
+etapa, esquerda zera, cima e baixo mexem no volume. As setas nunca são
+sequestradas quando um botão está focado, senão a navegação do próprio
+navegador da TV deixaria de funcionar.
 
 Para um aparelho que fica fixo na academia, abrir com `?tv=1` no fim da URL já
 entra no modo TV sem precisar mexer nos ajustes.

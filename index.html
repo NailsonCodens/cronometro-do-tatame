@@ -938,8 +938,13 @@ body.tv-mode .step{ width:46px; height:46px; }
   syncSheet();
   reset();
 
-  /* Na TV o controle navega por foco, então já começamos com o foco no botão
-     principal: Enter começa e as setas alcançam zerar, pular e os ajustes. */
-  if (cfg.tv) { try { btnPlay.focus(); } catch (e) {} }
+  /* Sem toque no aparelho, a navegação por foco é a interação principal, então
+     já começamos com o foco no botão principal: Enter (o OK do controle) começa
+     e as setas alcançam zerar, pular, tela cheia e os ajustes.
+
+     Isso também fecha um furo: numa TV com o modo TV ainda desligado, nada
+     estava focado, as setas eram tratadas como atalho e o controle não tinha
+     como chegar até a engrenagem dos ajustes. */
+  if (cfg.tv || !TOUCH) { try { btnPlay.focus(); } catch (e) {} }
 })();
 </script>
