@@ -1,3 +1,6 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#07090C">
 <title>Cronômetro do Tatame</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -670,12 +673,23 @@ body.tv-mode .step{ width:46px; height:46px; }
   }
 
   var shown = "";
+  /* Trocar o innerHTML a cada segundo destruía os spans, e um toque que caísse
+     exatamente nesse instante podia se perder. Agora só o texto de cada célula
+     muda; os nós continuam os mesmos. */
   function paintClock(text){
     if (text === shown) return;
     shown = text;
+    var cells = clock.children, i, c;
+    if (cells.length === text.length) {
+      for (i = 0; i < text.length; i++) {
+        c = text.charAt(i);
+        if (cells[i].textContent !== c) cells[i].textContent = c;
+      }
+      return;
+    }
     var html = "";
-    for (var i = 0; i < text.length; i++) {
-      var c = text.charAt(i);
+    for (i = 0; i < text.length; i++) {
+      c = text.charAt(i);
       html += c === ":" ? '<span class="sep">:</span>' : '<span class="dig">' + c + '</span>';
     }
     clock.innerHTML = html;
