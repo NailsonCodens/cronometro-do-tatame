@@ -71,6 +71,32 @@ revisão:
 A sessão de desenvolvedor da LG expira a cada ~50 horas; renova-se pelo app
 Developer Mode na TV, sem reinstalar nada.
 
+### Aviso: webOS TV Lite não aceita sideload
+
+Testado em 2026-08-31 numa LG **webOS TV Lite 5.6.2** (imagem
+`starfish-atsc-secured`) e não funciona, apesar de todo o resto estar correto:
+
+- Dev Mode ativo e SSH na porta 9922 funcionando (a TV só negocia `ssh-rsa`,
+  então o OpenSSH moderno precisa de `-o HostKeyAlgorithms=+ssh-rsa`)
+- `ares-install` não autentica: a lib `ssh2` embutida no CLI não aceita
+  `ssh-rsa`, e ela não lê `~/.ssh/config`
+- Instalando à mão dá no mesmo: `luna-send` é `rwx------ root`, e o
+  `luna-send-pub` conecta no hub mas nenhuma chamada retorna nada
+
+O erro que revela a causa aparece ao declarar um appId:
+
+```
+LUNASERVICE ERROR -1031: LSCallFromApplication with application ID
+com.nailson.tatame but not privileged
+```
+
+O usuário `prisoner` do Dev Mode não tem privilégio no barramento Luna nessa
+build, então `com.webos.appInstallService/dev/install` é inalcançável. O pacote
+aqui é válido e deve instalar numa webOS TV normal — em Lite, não.
+
+Nessas TVs o caminho é o navegador da própria TV abrindo a URL publicada, que
+já tem modo TV e navegação por controle.
+
 ## Arquivos
 
 | Arquivo | Para que serve |
