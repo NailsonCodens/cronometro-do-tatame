@@ -10,12 +10,22 @@ sem dependência: abre no celular, no navegador ou em qualquer hospedagem estát
 - Encaixa em pé e deitado; o número ocupa a tela toda
 - Segura a tela acesa enquanto o cronômetro roda (Screen Wake Lock)
 - Os ajustes ficam salvos no aparelho
+- Modo TV para usar espelhado ou num TV Box: tudo maior e com margem contra o
+  overscan que quase toda TV aplica
 
 ## Uso
 
 Abra o `index.html`. Toque no número para começar ou pausar.
 
-Atalhos de teclado: espaço começa/pausa, `R` zera, `S` pula a etapa.
+Atalhos de teclado: espaço ou Enter começa/pausa, `R` zera, `S` pula a etapa,
+`T` liga o modo TV.
+
+Num controle de TV Box ou tecladinho sem fio o direcional já resolve: Enter
+começa e pausa, direita pula a etapa, esquerda zera, cima e baixo mexem no
+volume.
+
+Para um aparelho que fica fixo na academia, abrir com `?tv=1` no fim da URL já
+entra no modo TV sem precisar mexer nos ajustes.
 
 ## Detalhes de implementação
 
