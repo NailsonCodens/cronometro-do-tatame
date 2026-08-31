@@ -239,8 +239,12 @@ body.tv-mode .step:focus, body.tv-mode .preset:focus, body.tv-mode .link:focus{
 }
 body.tv-mode .hint{ display:none; }
 body.tv-mode .app{ padding:4.5vmin 6vmin; }
-body.tv-mode .bar{ padding:0 0 clamp(6px,1vh,16px); }
-body.tv-mode .controls{ padding:clamp(8px,1.4vh,20px) 0 0; gap:clamp(12px,1.4vw,22px); }
+body.tv-mode .bar{ padding:0 0 clamp(6px,1vh,16px); gap:clamp(14px,1.6vw,30px); }
+/* Espaçamento pensado para a distância: com o botão focado crescendo 5%, um
+   gap de celular faz os alvos se encostarem na tela grande. */
+body.tv-mode .controls{ padding:clamp(16px,2.8vh,38px) 0 0; gap:clamp(22px,3vw,58px); }
+body.tv-mode .icons{ gap:clamp(14px,1.6vw,30px); }
+body.tv-mode .stats{ gap:clamp(18px,2vw,38px); }
 body.tv-mode .sub{ letter-spacing:.3em; }
 body.tv-mode .rest{ font-size:clamp(16px,1.8vw,26px); }
 
@@ -270,7 +274,9 @@ body.tv-mode .preset{
 body.tv-mode .link, body.tv-mode .close{
   font-size:clamp(15px,1.4vw,22px); padding:clamp(14px,1.8vh,24px);
 }
-body.tv-mode .sheet-actions{ gap:clamp(12px,1.4vw,22px); margin-top:clamp(8px,1.4vh,20px); }
+body.tv-mode .sheet-actions{ gap:clamp(18px,2vw,40px); margin-top:clamp(14px,2.2vh,32px); }
+body.tv-mode .stepper{ gap:clamp(8px,1vw,18px); }
+body.tv-mode .presets{ gap:clamp(14px,1.6vw,28px); }
 
 /* A legenda só aparece em modo TV num aparelho sem toque: no celular
    espelhado ela seria mentira, porque ali o dedo funciona. */
