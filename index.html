@@ -76,7 +76,7 @@ body{
 .icon{
   width:40px; height:40px; flex:none; display:grid; place-items:center;
   border-radius:11px; border:1px solid var(--line); background:var(--panel);
-  color:var(--chalk); cursor:pointer; padding:0;
+  color:var(--chalk); cursor:pointer; padding:0; touch-action:manipulation;
 }
 .icon svg{ width:19px; height:19px; }
 
@@ -84,6 +84,7 @@ body{
 .stage{
   display:grid; place-content:center; justify-items:center;
   min-height:0; padding:0 12px; cursor:pointer;
+  touch-action:manipulation;
 }
 .crest{
   width:clamp(76px,24vw,124px); height:clamp(76px,24vw,124px);
@@ -118,6 +119,7 @@ body{
 .btn{
   font-family:var(--ui); border:0; cursor:pointer; border-radius:15px;
   display:grid; place-items:center; padding:0;
+  touch-action:manipulation;
 }
 .btn:focus-visible{ outline:2px solid var(--chalk); outline-offset:3px; }
 .btn:active{ transform:scale(.97); }
@@ -209,7 +211,8 @@ body.tv-mode .step{ width:46px; height:46px; }
 .step{
   width:40px; height:40px; border-radius:11px; border:1px solid var(--line);
   background:var(--panel-2); color:var(--chalk);
-  font:600 20px/1 var(--ui); cursor:pointer; display:grid; place-items:center; padding:0;
+  font:600 20px/1 var(--ui); cursor:pointer; display:grid; place-items:center;
+  padding:0; touch-action:manipulation;
 }
 .step:active{ background:var(--line); }
 .val{
@@ -529,6 +532,20 @@ body.tv-mode .step{ width:46px; height:46px; }
     if (cfg.vibrate && navigator.vibrate) { try { navigator.vibrate(pattern); } catch (e) {} }
   }
 
+  /* Criar o AudioContext custa alguns décimos de segundo no celular, e isso
+     acontecia dentro do toque no Iniciar — o botão parecia travar. Agora o
+     áudio é destravado no primeiro toque em qualquer lugar da página, então
+     quando o Iniciar é apertado o contexto já existe. */
+  var warmed = false;
+  function warmAudio(){
+    if (warmed) return;
+    warmed = true;
+    audio();
+  }
+  ["pointerdown", "keydown"].forEach(function(ev){
+    document.addEventListener(ev, warmAudio, { capture: true, passive: true });
+  });
+
   /* ---------------- wake lock ---------------- */
   var lock = null;
   function keepAwake(){
@@ -776,7 +793,18 @@ body.tv-mode .step{ width:46px; height:46px; }
   });
 
   /* ---------------- eventos ---------------- */
-  function toggle(){ if (st.phase === "done") { reset(); start(); } else if (st.running) pause(); else start(); }
+  /* Dois disparos seguidos se anulavam: o segundo desfazia o primeiro e parecia
+     que o botão não respondeu. Acontecia com toque duplo impaciente, com clique
+     fantasma do iOS e com tecla batendo junto com o clique nativo do botão. */
+  var lastToggle = 0;
+  function toggle(){
+    var now = Date.now();
+    if (now - lastToggle < 250) return;
+    lastToggle = now;
+    if (st.phase === "done") { reset(); start(); }
+    else if (st.running) pause();
+    else start();
+  }
 
   $("stage").addEventListener("click", toggle);
   btnPlay.addEventListener("click", toggle);
@@ -802,7 +830,12 @@ body.tv-mode .step{ width:46px; height:46px; }
 
   document.addEventListener("keydown", function(e){
     if (e.target.closest && e.target.closest(".card")) return;
-    if (e.code === "Space" || e.code === "Enter") { e.preventDefault(); toggle(); }
+    /* Com o foco num botão, o próprio botão já dispara o clique com espaço ou
+       Enter — se eu também chamasse toggle aqui, contaria duas vezes. */
+    if (e.code === "Space" || e.code === "Enter") {
+      if (e.target && e.target.tagName === "BUTTON") return;
+      e.preventDefault(); toggle();
+    }
     else if (e.code === "ArrowRight") { e.preventDefault(); skip(); }
     else if (e.code === "ArrowLeft") { e.preventDefault(); reset(); }
     else if (e.code === "ArrowUp") { e.preventDefault(); nudgeVolume(5); }
