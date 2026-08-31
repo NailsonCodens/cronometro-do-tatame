@@ -65,8 +65,11 @@ body{
 }
 
 /* ---------- topo ---------- */
-.bar{ display:flex; align-items:center; gap:10px; padding:16px 16px 0; }
-.tag{ display:flex; align-items:center; gap:9px; min-width:0; }
+/* Margem em vez de gap: gap no flexbox exige Chromium 84 e a webOS 5.x roda
+   68 — na TV todo espaçamento virava zero silenciosamente. */
+.bar{ display:flex; align-items:center; padding:16px 16px 0; }
+.tag{ display:flex; align-items:center; min-width:0; }
+.tag > * + *{ margin-left:9px; }
 .dot{ width:10px; height:10px; border-radius:50%; background:var(--accent); flex:none; transition:background .45s var(--fx); }
 .app.running .dot{ animation:pulse 2s ease-in-out infinite; }
 @keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.35} }
@@ -76,11 +79,13 @@ body{
   letter-spacing:.24em; text-transform:uppercase;
   color:var(--accent); white-space:nowrap; transition:color .45s var(--fx);
 }
-.stats{ margin-left:auto; display:flex; align-items:center; gap:14px; }
+.stats{ margin-left:auto; display:flex; align-items:center; }
+.stats > * + *{ margin-left:14px; }
 .stat{ text-align:right; line-height:1.15; }
 .stat b{ display:block; font:600 14px/1 var(--ui); font-variant-numeric:tabular-nums; color:var(--chalk); }
 .stat span{ font:500 9px/1 var(--ui); letter-spacing:.18em; text-transform:uppercase; color:var(--muted); }
-.icons{ display:flex; gap:8px; }
+.icons{ display:flex; }
+.icons > * + *{ margin-left:8px; }
 .icon{
   width:40px; height:40px; flex:none; display:grid; place-items:center;
   border-radius:11px; border:1px solid var(--line); background:var(--panel);
@@ -137,7 +142,8 @@ body.tv-mode .rest{ font-size:clamp(15px,1.6vw,22px); max-width:40ch; }
 }
 
 /* ---------- controles ---------- */
-.controls{ display:flex; gap:10px; align-items:center; justify-content:center; padding:0 16px 18px; }
+.controls{ display:flex; align-items:center; justify-content:center; padding:0 16px 18px; }
+.controls > * + *{ margin-left:10px; }
 .btn{
   font-family:var(--ui); border:0; cursor:pointer; border-radius:15px;
   display:grid; place-items:center; padding:0;
@@ -242,12 +248,15 @@ body.tv-mode .step:focus, body.tv-mode .preset:focus, body.tv-mode .link:focus{
 }
 body.tv-mode .hint{ display:none; }
 body.tv-mode .app{ padding:4.5vmin 6vmin; }
-body.tv-mode .bar{ padding:0 0 clamp(6px,1vh,16px); gap:clamp(14px,1.6vw,30px); }
-/* Espaçamento pensado para a distância: com o botão focado crescendo 5%, um
-   gap de celular faz os alvos se encostarem na tela grande. */
-body.tv-mode .controls{ padding:clamp(16px,2.8vh,38px) 0 0; gap:clamp(22px,3vw,58px); }
-body.tv-mode .icons{ gap:clamp(14px,1.6vw,30px); }
-body.tv-mode .stats{ gap:clamp(18px,2vw,38px); }
+body.tv-mode .bar{ padding:0 0 clamp(6px,1vh,16px); }
+/* Espaçamento para a distância: com o botão focado crescendo 5%, margem de
+   celular faz os alvos se encostarem na tela grande. */
+body.tv-mode .controls{ padding:clamp(20px,3.6vh,52px) 0 0; }
+body.tv-mode .controls > * + *{ margin-left:clamp(28px,5vw,104px); }
+body.tv-mode .icons > * + *{ margin-left:clamp(18px,2.4vw,44px); }
+body.tv-mode .stats > * + *{ margin-left:clamp(18px,2vw,38px); }
+body.tv-mode .tag > * + *{ margin-left:clamp(12px,1.2vw,20px); }
+body.tv-mode .btn-main{ max-width:clamp(240px,24vw,400px); }
 body.tv-mode .sub{ letter-spacing:.3em; }
 body.tv-mode .rest{ font-size:clamp(16px,1.8vw,26px); }
 
@@ -261,7 +270,8 @@ body.tv-mode .card h2{ font-size:clamp(26px,2.8vw,46px); margin-bottom:6px; }
 body.tv-mode .card p.lead{ font-size:clamp(14px,1.3vw,20px); margin-bottom:clamp(14px,2vh,28px); }
 body.tv-mode .group{ margin-bottom:clamp(14px,2.2vh,30px); }
 body.tv-mode .group-title{ font-size:clamp(11px,1.1vw,16px); letter-spacing:.26em; }
-body.tv-mode .row{ padding:clamp(10px,1.5vh,22px) 0; gap:clamp(16px,2vw,32px); }
+body.tv-mode .row{ padding:clamp(10px,1.5vh,22px) 0; }
+body.tv-mode .row > * + *{ margin-left:clamp(18px,2.2vw,40px); }
 body.tv-mode .row label{ font-size:clamp(17px,1.7vw,27px); }
 body.tv-mode .row small{ font-size:clamp(13px,1.2vw,19px); margin-top:5px; }
 body.tv-mode .val{ font-size:clamp(21px,2vw,33px); min-width:clamp(96px,9vw,150px); }
@@ -277,9 +287,13 @@ body.tv-mode .preset{
 body.tv-mode .link, body.tv-mode .close{
   font-size:clamp(15px,1.4vw,22px); padding:clamp(14px,1.8vh,24px);
 }
-body.tv-mode .sheet-actions{ gap:clamp(18px,2vw,40px); margin-top:clamp(14px,2.2vh,32px); }
-body.tv-mode .stepper{ gap:clamp(8px,1vw,18px); }
-body.tv-mode .presets{ gap:clamp(14px,1.6vw,28px); }
+body.tv-mode .sheet-actions{ margin-top:clamp(14px,2.2vh,32px); }
+body.tv-mode .sheet-actions > * + *{ margin-left:clamp(20px,2.6vw,52px); }
+body.tv-mode .stepper > * + *{ margin-left:clamp(12px,1.5vw,28px); }
+body.tv-mode .presets{ margin-bottom:clamp(-32px,-1.8vw,-14px); }
+body.tv-mode .presets > *{
+  margin:0 clamp(14px,1.8vw,32px) clamp(14px,1.8vw,32px) 0;
+}
 
 /* A legenda só aparece em modo TV num aparelho sem toque: no celular
    espelhado ela seria mentira, porque ali o dedo funciona. */
@@ -326,13 +340,15 @@ body.tv-mode .btn:focus, body.tv-mode .icon:focus{
   color:var(--muted); margin:0 0 10px;
 }
 .row{
-  display:flex; align-items:center; gap:12px;
+  display:flex; align-items:center;
   padding:11px 0; border-top:1px solid var(--line);
 }
+.row > * + *{ margin-left:12px; }
 .row:first-of-type{ border-top:0; }
 .row label{ font:500 15px/1.2 var(--ui); flex:1; min-width:0; }
 .row small{ display:block; font:400 12px/1.35 var(--ui); color:var(--muted); margin-top:3px; }
-.stepper{ display:flex; align-items:center; gap:2px; flex:none; }
+.stepper{ display:flex; align-items:center; flex:none; }
+.stepper > * + *{ margin-left:2px; }
 .step{
   width:40px; height:40px; border-radius:11px; border:1px solid var(--line);
   background:var(--panel-2); color:var(--chalk);
@@ -360,14 +376,16 @@ body.tv-mode .btn:focus, body.tv-mode .icon:focus{
   width:132px; flex:none; height:40px; margin:0;
   accent-color:var(--accent); background:transparent; cursor:pointer;
 }
-.presets{ display:flex; flex-wrap:wrap; gap:8px; }
+.presets{ display:flex; flex-wrap:wrap; margin-bottom:-8px; }
+.presets > *{ margin:0 8px 8px 0; }
 .preset{
   padding:9px 14px; border-radius:11px; border:1px solid var(--line);
   background:var(--panel-2); color:var(--chalk); cursor:pointer;
   font:600 13px/1 var(--ui); font-variant-numeric:tabular-nums;
 }
 .preset:active{ background:var(--line); }
-.sheet-actions{ display:flex; gap:10px; margin-top:6px; }
+.sheet-actions{ display:flex; margin-top:6px; }
+.sheet-actions > * + *{ margin-left:10px; }
 .link{
   flex:1; padding:14px; border-radius:13px; border:1px solid var(--line);
   background:var(--panel-2); color:var(--chalk); cursor:pointer;

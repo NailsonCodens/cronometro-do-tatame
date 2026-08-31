@@ -241,6 +241,11 @@ Aprendido testando na TV de verdade, não no emulador.
   acerta onde as media queries de `pointer` erram (TV Box reporta 0).
 - **O foco precisa ser lido a 3 metros.** Contorno fino não serve: o item
   selecionado deve acender e crescer.
+- **`gap` do flexbox não existe.** Exige Chromium 84 e a webOS 5.x roda 68. Não
+  há aviso: todo espaçamento simplesmente vira zero, e aumentar o valor não
+  muda nada. Use margem entre irmãos (`> * + * { margin-left: ... }`), que
+  funciona em qualquer motor. Foi o erro que mais tempo demorou a ser visto,
+  porque o sintoma — "os botões estão colados" — parece problema de valor.
 - **CSS moderno pode não existir.** `inset` exige Chrome 87, `clamp()` e `min()`
   exigem 79, a unidade `dvh` exige 108. Declare sempre uma versão simples antes
   da moderna: motor antigo descarta a que não entende e fica com a anterior.
