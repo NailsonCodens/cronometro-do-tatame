@@ -529,10 +529,17 @@ body.tv-mode .step{ width:46px; height:46px; }
     live.push(o);
   }
 
-  /* bipe seco da contagem final; nos 3 últimos sobe de tom para avisar o fim */
-  function blip(at, strong){
-    var f = strong ? 1320 : 1000;
-    tone(at, f, 0.08, strong ? 0.48 : 0.34, "square");
+  /* Contagem final em três níveis: seco de 10 a 4, mais agudo em 3 e 2, e no
+     último segundo um tom longo e grave que não se confunde com os curtos —
+     ele segura até quase encostar na buzina. */
+  function blip(at, level){
+    if (level === 2) {
+      tone(at, 620, 0.62, 0.54, "square");
+      tone(at, 930, 0.62, 0.26, "sawtooth");
+      return;
+    }
+    var f = level === 1 ? 1320 : 1000;
+    tone(at, f, 0.08, level === 1 ? 0.48 : 0.34, "square");
     tone(at, f * 2, 0.06, 0.12, "square");
   }
 
@@ -570,7 +577,7 @@ body.tv-mode .step{ width:46px; height:46px; }
     if (cfg.cues) {
       for (var n = 10; n >= 1; n--) {
         var t = at - n;
-        if (t > ac.currentTime + 0.05) blip(t, n <= 3);
+        if (t > ac.currentTime + 0.05) blip(t, n === 1 ? 2 : n <= 3 ? 1 : 0);
       }
     }
     var last = cfg.rounds > 0 && st.round >= cfg.rounds;
