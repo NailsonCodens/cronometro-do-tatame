@@ -222,6 +222,22 @@ body.tv-mode .row label{ font-size:18px; }
 body.tv-mode .val{ font-size:21px; min-width:88px; }
 body.tv-mode .step{ width:46px; height:46px; }
 
+/* A legenda só aparece em modo TV num aparelho sem toque: no celular
+   espelhado ela seria mentira, porque ali o dedo funciona. */
+.legend{ display:none; }
+body.tv-mode.no-touch .legend{
+  display:block; margin:0 0 clamp(10px,1.7vh,20px);
+  text-align:center; color:var(--muted);
+  font:500 14px/1.4 var(--ui);
+  font:500 clamp(12px,1.3vw,17px)/1.4 var(--ui);
+}
+
+/* Anel de foco reforçado na TV: é o que diz em qual botão o controle está,
+   e precisa ser visível do outro lado do tatame. */
+body.tv-mode .btn:focus, body.tv-mode .icon:focus{
+  outline-width:4px; outline-offset:4px;
+}
+
 /* ---------- ajustes ---------- */
 .sheet{
   position:fixed; top:0; right:0; bottom:0; left:0; z-index:20;
@@ -350,6 +366,8 @@ body.tv-mode .step{ width:46px; height:46px; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4l10 8-10 8z"/><path d="M19 5v14"/></svg>
     </button>
   </nav>
+
+  <p class="legend">OK inicia e pausa &middot; setas mudam o botão selecionado</p>
 </div>
 
 <div class="sheet" id="sheet" hidden>
@@ -468,7 +486,12 @@ body.tv-mode .step{ width:46px; height:46px; }
      de tecla, não de dedo. maxTouchPoints acerta onde as media queries de
      pointer erram: TV Box reporta 0, celular reporta mais de 0. */
   var TOUCH = (navigator.maxTouchPoints || 0) > 0;
-  function verb(acao){ return (TOUCH ? "Toque" : "Enter") + " para " + acao; }
+
+  /* Controle de TV não tem tecla "Enter": ali ela se chama OK ou Select. Num
+     celular espelhado o toque continua valendo, então TOUCH vem primeiro. */
+  function verb(acao){
+    return (TOUCH ? "Toque" : cfg.tv ? "OK" : "Enter") + " para " + acao;
+  }
 
   /* ---------------- estado ---------------- */
   var st = { phase:"prep", round:1, running:false, endAt:0, leftMs:0, total:0, last:0 };
@@ -945,6 +968,7 @@ body.tv-mode .step{ width:46px; height:46px; }
      Isso também fecha um furo: numa TV com o modo TV ainda desligado, nada
      estava focado, as setas eram tratadas como atalho e o controle não tinha
      como chegar até a engrenagem dos ajustes. */
+  if (!TOUCH) document.body.className += " no-touch";
   if (cfg.tv || !TOUCH) { try { btnPlay.focus(); } catch (e) {} }
 })();
 </script>
