@@ -81,44 +81,22 @@ Developer Mode na TV, sem reinstalar nada.
 
 ### O ares-install não funciona: use o install-tv.sh
 
-Testado em 2026-08-31 numa LG **webOS TV Lite 5.6.2** (imagem
-`starfish-atsc-secured`). A instalação funciona, mas não pela ferramenta oficial:
-
-- A TV negocia **somente o algoritmo `ssh-rsa`**. O OpenSSH moderno recusa por
-  padrão e precisa de `-o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa`.
-- O `ares-install` usa a lib `ssh2` embutida, que também recusa `ssh-rsa` e
-  **não lê `~/.ssh/config`** — então não há como configurar. Ele falha com
-  "All configured authentication methods failed".
-
-O `install-tv.sh` contorna isso usando o ssh do sistema e chamando o mesmo
-serviço Luna que o ares-install chamaria:
+A TV negocia só o algoritmo `ssh-rsa`, que a lib `ssh2` embutida no CLI da LG
+recusa — e ela não lê `~/.ssh/config`, então não há como configurar. O
+`install-tv.sh` contorna usando o ssh do sistema e chamando o mesmo serviço
+Luna que o `ares-install` chamaria:
 
 ```sh
 ares-novacom --device tv --getkey        # uma vez, pede a passphrase da TV
 ./install-tv.sh 192.168.1.60 C0D62C      # IP e passphrase do Key Server
 ```
 
-O mesmo comando serve para **atualizar**: ele reempacota o `index.html` atual,
-reinstala em cima e reabre o app. Não precisa desinstalar nada.
+O mesmo comando serve para **atualizar**: reempacota o `index.html` atual,
+reinstala em cima e reabre o app.
 
-### Navegação por controle: o app tem que implementar
-
-Chromium **não faz navegação espacial**, então as setas do controle não movem o
-foco sozinhas — num app de TV isso é responsabilidade do app. A primeira versão
-deixava as setas para o navegador e o resultado era OK funcionando e setas
-mortas. O `navigate()` no código percorre grupos que são as faixas visuais da
-tela: setas laterais andam dentro do grupo, verticais trocam de grupo. O
-`keyName()` cai para `keyCode` porque motor antigo de TV pode não ter
-`KeyboardEvent.code`.
-
-Duas armadilhas que custaram tempo e valem registro:
-
-1. **`luna-send-pub` precisa da flag `-i`.** Com `-n 1` ele sai antes da
-   resposta chegar e imprime nada — o que parece um bloqueio de permissão e não
-   é. Como `-i` não termina sozinho, roda em segundo plano e mata-se depois.
-2. **`luna-send` é exclusivo do root** (`rwx------`), mas o `luna-send-pub` é
-   executável por todos e alcança `com.webos.appInstallService/dev/install`.
-   O usuário `prisoner` do Dev Mode tem privilégio suficiente.
+**Todo o resto está em [docs/tv-lg.md](docs/tv-lg.md)** — conta de
+desenvolvedor, modo dev, as armadilhas do `luna-send-pub`, comandos úteis na TV
+e o que não é óbvio ao escrever um app web para TV.
 
 ## Arquivos
 
@@ -131,3 +109,4 @@ Duas armadilhas que custaram tempo e valem registro:
 | `webos/icon.png`, `largeIcon.png` | Ícones 80x80 e 130x130 exigidos pela webOS |
 | `build-webos.sh` | Copia o index.html e gera o `.ipk` |
 | `install-tv.sh` | Envia e instala o `.ipk` na TV por Dev Mode |
+| `docs/tv-lg.md` | Guia completo de instalação e desenvolvimento para TV LG |
