@@ -36,7 +36,7 @@ body{
 
 /* ---------- shell ---------- */
 .app{
-  position:fixed; inset:0;
+  position:fixed; top:0; right:0; bottom:0; left:0;
   display:grid;
   grid-template-rows:auto 1fr auto;
   background:radial-gradient(135% 95% at 50% -12%, var(--wash), rgba(0,0,0,0) 64%);
@@ -67,6 +67,7 @@ body{
 .app.running .dot{ animation:pulse 2s ease-in-out infinite; }
 @keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.35} }
 .phase{
+  font:700 15px/1 var(--ui);
   font:700 clamp(13px,3.6vw,17px)/1 var(--ui);
   letter-spacing:.24em; text-transform:uppercase;
   color:var(--accent); white-space:nowrap; transition:color .45s var(--fx);
@@ -90,13 +91,14 @@ body{
   touch-action:manipulation;
 }
 .crest{
+  width:100px; height:100px;
   width:clamp(76px,24vw,124px); height:clamp(76px,24vw,124px);
   display:block; border-radius:50%; opacity:.92;
   margin-bottom:clamp(10px,2.6vh,22px);
 }
 .clock{
   font-family:var(--display); font-weight:800;
-  font-size:min(36vw,42vh); line-height:.8;
+  font-size:22vw; font-size:min(36vw,42vh); line-height:.8;
   color:var(--chalk); transition:opacity .25s var(--fx), color .45s var(--fx);
   display:flex; align-items:baseline; justify-content:center;
 }
@@ -108,6 +110,7 @@ body{
 .app.urgent .clock{ color:var(--accent); }
 .sub{
   margin-top:10px;
+  font:600 13px/1 var(--ui);
   font:600 clamp(11px,3vw,14px)/1 var(--ui);
   letter-spacing:.26em; text-transform:uppercase; color:var(--muted);
   text-align:center;
@@ -127,13 +130,15 @@ body{
 .btn:focus-visible{ outline:2px solid var(--chalk); outline-offset:3px; }
 .btn:active{ transform:scale(.97); }
 .btn-main{
-  flex:1 1 auto; max-width:380px; height:clamp(58px,8.5vh,72px);
+  flex:1 1 auto; max-width:380px;
+  height:64px; height:clamp(58px,8.5vh,72px);
   background:var(--accent); color:var(--on-accent);
-  font-weight:700; font-size:clamp(14px,3.9vw,17px);
+  font-weight:700; font-size:16px; font-size:clamp(14px,3.9vw,17px);
   letter-spacing:.2em; text-transform:uppercase;
   transition:background .45s var(--fx), color .45s var(--fx);
 }
 .btn-ghost{
+  width:64px; height:64px;
   width:clamp(58px,16vw,72px); height:clamp(58px,8.5vh,72px); flex:none;
   background:var(--panel); border:1px solid var(--line); color:var(--chalk);
 }
@@ -143,16 +148,18 @@ body{
 @media (orientation:landscape){
   .bar{ padding:11px 16px 0; }
   .crest{
+    width:64px; height:64px;
     width:clamp(54px,14vh,82px); height:clamp(54px,14vh,82px);
     margin-bottom:clamp(6px,1.8vh,14px);
   }
-  .clock{ font-size:min(26vw,40vh); }
-  body.tv-mode .clock{ font-size:min(32vw,54vh); }
+  .clock{ font-size:30vh; font-size:min(26vw,40vh); }
+  body.tv-mode .clock{ font-size:46vh; font-size:min(32vw,54vh); }
   .sub{ margin-top:7px; }
   .hint{ margin-top:9px; }
   .controls{ padding:0 16px 13px; }
-  .controls .btn-main{ height:clamp(50px,13vh,68px); max-width:340px; }
-  .controls .btn-ghost{ height:clamp(50px,13vh,68px); width:clamp(50px,9vw,68px); }
+  .controls .btn-main{ height:58px; height:clamp(50px,13vh,68px); max-width:340px; }
+  .controls .btn-ghost{ height:58px; width:58px;
+    height:clamp(50px,13vh,68px); width:clamp(50px,9vw,68px); }
 }
 /* celular deitado: a dica sai para o relógio respirar */
 @media (orientation:landscape) and (max-height:430px){
@@ -163,14 +170,17 @@ body{
    Espelhamento e TV Box mostram a tela de longe, então tudo cresce. O padding
    protege contra o overscan: quase toda TV corta um pedaço da borda. */
 body.tv-mode .app{ padding:3.5vmin; }
-body.tv-mode .clock{ font-size:min(44vw,52vh); }
-body.tv-mode .crest{ width:clamp(90px,15vh,180px); height:clamp(90px,15vh,180px); }
+body.tv-mode .clock{ font-size:38vh; font-size:min(44vw,52vh); }
+body.tv-mode .crest{ width:140px; height:140px;
+  width:clamp(90px,15vh,180px); height:clamp(90px,15vh,180px); }
 body.tv-mode .phase{ font-size:clamp(16px,2.1vw,26px); }
 body.tv-mode .sub{ font-size:clamp(14px,1.7vw,22px); }
 body.tv-mode .hint{ font-size:clamp(12px,1.3vw,17px); }
 body.tv-mode .stat b{ font-size:clamp(16px,1.5vw,22px); }
-body.tv-mode .btn-main{ height:clamp(64px,10vh,96px); max-width:460px; font-size:clamp(16px,1.7vw,24px); }
-body.tv-mode .btn-ghost{ height:clamp(64px,10vh,96px); width:clamp(64px,7vw,96px); }
+body.tv-mode .btn-main{ height:80px; font-size:20px;
+  height:clamp(64px,10vh,96px); max-width:460px; font-size:clamp(16px,1.7vw,24px); }
+body.tv-mode .btn-ghost{ height:80px; width:80px;
+  height:clamp(64px,10vh,96px); width:clamp(64px,7vw,96px); }
 body.tv-mode .btn-ghost svg{ width:30px; height:30px; }
 body.tv-mode .card{ width:min(760px,100%); }
 body.tv-mode .row label{ font-size:18px; }
@@ -179,19 +189,20 @@ body.tv-mode .step{ width:46px; height:46px; }
 
 /* ---------- ajustes ---------- */
 .sheet{
-  position:fixed; inset:0; z-index:20;
+  position:fixed; top:0; right:0; bottom:0; left:0; z-index:20;
   background:rgba(4,6,9,.78); backdrop-filter:blur(10px);
   display:grid; place-items:end center;
 }
 .sheet[hidden]{ display:none; }
 .card{
-  width:min(560px,100%); max-height:90dvh; overflow-y:auto;
+  width:100%; max-width:560px;
+  max-height:90vh; max-height:90dvh; overflow-y:auto;
   background:var(--panel); border:1px solid var(--line);
   border-radius:22px 22px 0 0; padding:20px 18px calc(24px + env(safe-area-inset-bottom));
 }
 @media (orientation:landscape){
   .sheet{ place-items:center; }
-  .card{ border-radius:20px; max-height:92dvh; }
+  .card{ border-radius:20px; max-height:92vh; max-height:92dvh; }
 }
 .card h2{
   margin:0 0 4px; font:700 20px/1.2 var(--ui);
