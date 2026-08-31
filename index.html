@@ -543,22 +543,28 @@ body.tv-mode .step{ width:46px; height:46px; }
     tone(at, f * 2, 0.06, 0.12, "square");
   }
 
-  /* fim do tempo: dois tons alternados, tipo alarme de quadra */
+  /* Fim do rola: buzina de dois tons alternados, tipo alarme de quadra. Grave,
+     repetida e sem subir — o oposto do sinal de começar. */
   function horn(at, blasts){
     for (var i = 0; i < blasts; i++) {
-      var s = at + i * 0.42, f = i % 2 ? 698 : 523;
-      tone(s, f, 0.30, 0.60, "square");
-      tone(s, f * 1.5, 0.30, 0.30, "sawtooth");
-      tone(s, f * 4, 0.30, 0.10, "square");
+      var s = at + i * 0.46, f = i % 2 ? 698 : 523;
+      tone(s, f, 0.36, 0.62, "square");
+      tone(s, f * 1.5, 0.36, 0.32, "sawtooth");
+      tone(s, f * 4, 0.36, 0.11, "square");
+      tone(s, f / 2, 0.36, 0.20, "square");
     }
   }
 
-  /* volta pro tatame: três notas subindo, curtas e brilhantes */
+  /* Começa o rola: sobe em dois degraus e trava num tom longo e brilhante, com
+     um grave curto embaixo dando corpo. Sobe onde a buzina do fim é plana, e
+     dura mais — não dá para confundir qual dos dois tocou. */
   function bell(at){
-    tone(at, 784, 0.14, 0.45, "square");
-    tone(at + 0.16, 1046, 0.14, 0.45, "square");
-    tone(at + 0.32, 1568, 0.45, 0.50, "square");
-    tone(at + 0.32, 3136, 0.45, 0.12, "sine");
+    tone(at,        784,  0.15, 0.46, "square");
+    tone(at + 0.17, 1046, 0.15, 0.50, "square");
+    tone(at + 0.34, 1568, 1.05, 0.58, "square");
+    tone(at + 0.34, 2093, 1.05, 0.22, "sawtooth");
+    tone(at + 0.34, 3136, 0.60, 0.12, "sine");
+    tone(at + 0.34, 392,  0.50, 0.28, "square");
   }
 
   function clearCues(){
@@ -581,7 +587,7 @@ body.tv-mode .step{ width:46px; height:46px; }
       }
     }
     var last = cfg.rounds > 0 && st.round >= cfg.rounds;
-    if (st.phase === "work") { if (last) horn(at, 3); else horn(at, 2); }
+    if (st.phase === "work") { if (last) horn(at, 5); else horn(at, 3); }
     else bell(at);
   }
 
@@ -884,7 +890,9 @@ body.tv-mode .step{ width:46px; height:46px; }
   sheet.addEventListener("click", function(e){ if (e.target === sheet) sheet.hidden = true; });
   $("btn-test").addEventListener("click", function(){
     if (!audio()) return;
-    horn(ac.currentTime + 0.05, 3);
+    var t = ac.currentTime + 0.05;
+    horn(t, 3);        /* fim do rola */
+    bell(t + 1.9);     /* começa o rola */
     buzz([180, 80, 180]);
   });
 
