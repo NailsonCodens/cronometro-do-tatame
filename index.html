@@ -970,6 +970,25 @@ body.tv-mode .btn:focus, body.tv-mode .icon:focus{
      que o botão não respondeu. Acontecia com toque duplo impaciente, com clique
      fantasma do iOS e com tecla batendo junto com o clique nativo do botão. */
   var lastToggle = 0;
+  /* Ao esconder o painel, o elemento focado dentro dele desaparece e o foco cai
+     no body — ou seja, em lugar nenhum, e o controle parecia morrer. Toda
+     abertura e fechamento agora reposiciona o foco. */
+  function focusFirstIn(root){
+    var list = pickable(root);
+    if (list.length) { try { list[0].focus(); } catch (e) {} }
+  }
+  function managesFocus(){ return !TOUCH || cfg.tv; }
+
+  function openSheet(){
+    syncSheet();
+    sheet.hidden = false;
+    if (managesFocus()) focusFirstIn(sheet);
+  }
+  function closeSheet(){
+    sheet.hidden = true;
+    if (managesFocus()) { try { btnPlay.focus(); } catch (e) {} }
+  }
+
   function toggle(){
     var now = Date.now();
     if (now - lastToggle < 250) return;
@@ -983,9 +1002,9 @@ body.tv-mode .btn:focus, body.tv-mode .icon:focus{
   btnPlay.addEventListener("click", toggle);
   $("btn-reset").addEventListener("click", reset);
   $("btn-skip").addEventListener("click", skip);
-  $("btn-cfg").addEventListener("click", function(){ syncSheet(); sheet.hidden = false; });
-  $("btn-close").addEventListener("click", function(){ sheet.hidden = true; });
-  sheet.addEventListener("click", function(e){ if (e.target === sheet) sheet.hidden = true; });
+  $("btn-cfg").addEventListener("click", openSheet);
+  $("btn-close").addEventListener("click", closeSheet);
+  sheet.addEventListener("click", function(e){ if (e.target === sheet) closeSheet(); });
   $("btn-test").addEventListener("click", function(){
     if (!audio()) return;
     var t = ac.currentTime + 0.05;
@@ -1065,7 +1084,7 @@ body.tv-mode .btn:focus, body.tv-mode .icon:focus{
        comum esse código nunca chega. */
     if (e.keyCode === 461) {
       e.preventDefault();
-      if (!sheet.hidden) { sheet.hidden = true; try { btnPlay.focus(); } catch (err) {} }
+      if (!sheet.hidden) closeSheet();
       else { try { window.close(); } catch (err) {} }
       return;
     }
@@ -1084,12 +1103,11 @@ body.tv-mode .btn:focus, body.tv-mode .icon:focus{
     if (isArrow) {
       /* deixa o slider de volume trabalhar com as laterais */
       if (el && el.type === "range" && (k === "ArrowLeft" || k === "ArrowRight")) return;
+      /* Seta é SEMPRE navegação. Antes, com nada focado, ela virava atalho e
+         pulava etapa — o que fazia a tela alternar entre rola e descanso sem
+         explicação. Sem foco, navigate() entra no primeiro botão. */
       e.preventDefault();
-      if (onCtl || !sheet.hidden) { navigate(k); return; }
-      /* nada focado: as setas viram atalho direto, para mouse e teclado */
-      if (k === "ArrowRight") skip();
-      else if (k === "ArrowLeft") reset();
-      else nudgeVolume(k === "ArrowUp" ? 5 : -5);
+      navigate(k);
       return;
     }
 
@@ -1097,6 +1115,8 @@ body.tv-mode .btn:focus, body.tv-mode .icon:focus{
     if (e.key === "r" || e.key === "R") reset();
     else if (e.key === "s" || e.key === "S") skip();
     else if (e.key === "t" || e.key === "T") { cfg.tv = !cfg.tv; save(); syncSheet(); }
+    else if (e.key === "+" || e.key === "=") nudgeVolume(5);
+    else if (e.key === "-" || e.key === "_") nudgeVolume(-5);
   });
 
   document.addEventListener("visibilitychange", function(){

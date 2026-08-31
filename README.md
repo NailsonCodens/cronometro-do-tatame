@@ -24,10 +24,14 @@ No controle da TV o direcional já resolve. Em aparelho sem toque o foco começa
 no botão principal, então OK/Enter inicia e pausa, e o direcional anda entre
 zerar, iniciar, pular, tela cheia e ajustes — tudo alcançável sem mouse.
 
-Com o foco fora dos botões o direcional vira atalho direto: direita pula a
-etapa, esquerda zera, cima e baixo mexem no volume. As setas nunca são
-sequestradas quando um botão está focado, senão a navegação do próprio
-navegador da TV deixaria de funcionar.
+As setas são **sempre** navegação, nunca atalho de ação. Elas já foram atalho
+e isso causou um bug ruim: ao fechar os ajustes o foco caía no `body`, a seta
+direita virava "pular etapa" e a tela alternava entre rola e descanso sem
+explicação. Atalhos de ação ficam nas letras: `R` zera, `S` pula, `+` e `-`
+mexem no volume.
+
+Abrir e fechar os ajustes reposiciona o foco em aparelho sem toque, senão o
+elemento focado desaparece junto com o painel e o controle parece morrer.
 
 Para um aparelho que fica fixo na academia, abrir com `?tv=1` no fim da URL já
 entra no modo TV sem precisar mexer nos ajustes.
