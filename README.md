@@ -90,6 +90,19 @@ ares-novacom --device tv --getkey        # uma vez, pede a passphrase da TV
 ./install-tv.sh 192.168.1.60 C0D62C      # IP e passphrase do Key Server
 ```
 
+O mesmo comando serve para **atualizar**: ele reempacota o `index.html` atual,
+reinstala em cima e reabre o app. Não precisa desinstalar nada.
+
+### Navegação por controle: o app tem que implementar
+
+Chromium **não faz navegação espacial**, então as setas do controle não movem o
+foco sozinhas — num app de TV isso é responsabilidade do app. A primeira versão
+deixava as setas para o navegador e o resultado era OK funcionando e setas
+mortas. O `navigate()` no código percorre grupos que são as faixas visuais da
+tela: setas laterais andam dentro do grupo, verticais trocam de grupo. O
+`keyName()` cai para `keyCode` porque motor antigo de TV pode não ter
+`KeyboardEvent.code`.
+
 Duas armadilhas que custaram tempo e valem registro:
 
 1. **`luna-send-pub` precisa da flag `-i`.** Com `-n 1` ele sai antes da

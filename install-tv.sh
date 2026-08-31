@@ -18,7 +18,7 @@ APPID="com.nailson.tatame"
 [ -n "$IP" ] && [ -n "$PASS" ] || { echo "uso: ./install-tv.sh <IP-DA-TV> <PASSPHRASE>"; exit 1; }
 [ -f "$KEY" ] || { echo "chave não encontrada. Rode antes:"; echo "  ares-novacom --device tv --getkey"; exit 1; }
 
-[ -f webos/*.ipk ] 2>/dev/null || ./build-webos.sh >/dev/null
+./build-webos.sh >/dev/null
 IPK=$(ls webos/*.ipk)
 
 # cópia temporária sem senha, para o ssh rodar sem prompt

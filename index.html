@@ -935,31 +935,100 @@ body.tv-mode .btn:focus, body.tv-mode .icon:focus{
     } catch (e) {}
   });
 
-  document.addEventListener("keydown", function(e){
-    if (e.target.closest && e.target.closest(".card")) return;
-    /* Com o foco num botão o próprio botão já dispara o clique com espaço ou
-       Enter, e as setas pertencem à navegação por foco do navegador — que é
-       como se anda pela tela com controle de TV. Sequestrar as setas aqui
-       deixaria os ajustes inalcançáveis pelo controle. */
-    var onButton = e.target && e.target.tagName === "BUTTON";
-    if (e.code === "Space" || e.code === "Enter") {
-      if (onButton) return;
-      e.preventDefault(); toggle();
+  /* Chromium não faz navegação espacial: as setas do controle de TV não movem
+     o foco sozinhas. O app precisa mover. Grupos são as faixas visuais da tela
+     — setas laterais andam dentro do grupo, verticais trocam de grupo. */
+  function groupsNow(){
+    if (!sheet.hidden) {
+      return Array.prototype.slice.call(sheet.querySelectorAll(".row, .presets, .sheet-actions"));
     }
-    else if (e.code === "ArrowRight") { if (onButton) return; e.preventDefault(); skip(); }
-    else if (e.code === "ArrowLeft") { if (onButton) return; e.preventDefault(); reset(); }
-    else if (e.code === "ArrowUp") { if (onButton) return; e.preventDefault(); nudgeVolume(5); }
-    else if (e.code === "ArrowDown") { if (onButton) return; e.preventDefault(); nudgeVolume(-5); }
-    else if (e.key === "r" || e.key === "R") reset();
-    else if (e.key === "s" || e.key === "S") skip();
-    else if (e.key === "t" || e.key === "T") { cfg.tv = !cfg.tv; save(); syncSheet(); }
-    /* Voltar do controle da LG. Com os ajustes abertos fecha só o painel; na
-       tela principal encerra o app, que é o que a webOS espera. Em navegador
+    return [document.querySelector(".icons"), document.querySelector(".controls")];
+  }
+
+  function pickable(el){
+    if (!el) return [];
+    return Array.prototype.filter.call(el.querySelectorAll("button, input"), function(b){
+      return !b.disabled && b.offsetParent !== null;
+    });
+  }
+
+  function navigate(dir){
+    var groups = groupsNow(), gi = -1, items = [], ii = -1, i, list;
+    for (i = 0; i < groups.length; i++) {
+      list = pickable(groups[i]);
+      var at = list.indexOf(document.activeElement);
+      if (at !== -1) { gi = i; items = list; ii = at; break; }
+    }
+    if (gi === -1) {
+      for (i = 0; i < groups.length; i++) {
+        list = pickable(groups[i]);
+        if (list.length) { list[0].focus(); return; }
+      }
+      return;
+    }
+    if (dir === "ArrowLeft" || dir === "ArrowRight") {
+      var step = dir === "ArrowRight" ? 1 : -1;
+      items[(ii + step + items.length) % items.length].focus();
+      return;
+    }
+    var gstep = dir === "ArrowDown" ? 1 : -1;
+    for (i = gi + gstep; i >= 0 && i < groups.length; i += gstep) {
+      list = pickable(groups[i]);
+      if (list.length) { list[Math.min(ii, list.length - 1)].focus(); return; }
+    }
+  }
+
+  /* Motor antigo de TV pode não ter KeyboardEvent.code; keyCode sempre existe. */
+  function keyName(e){
+    if (e.code) return e.code;
+    switch (e.keyCode) {
+      case 13: return "Enter";
+      case 32: return "Space";
+      case 37: return "ArrowLeft";
+      case 38: return "ArrowUp";
+      case 39: return "ArrowRight";
+      case 40: return "ArrowDown";
+    }
+    return "";
+  }
+
+  document.addEventListener("keydown", function(e){
+    /* Voltar do controle da LG: fecha os ajustes ou encerra o app. Em navegador
        comum esse código nunca chega. */
-    else if (e.keyCode === 461) {
+    if (e.keyCode === 461) {
+      e.preventDefault();
       if (!sheet.hidden) { sheet.hidden = true; try { btnPlay.focus(); } catch (err) {} }
       else { try { window.close(); } catch (err) {} }
+      return;
     }
+
+    var k = keyName(e),
+        el = e.target,
+        onCtl = el && (el.tagName === "BUTTON" || el.tagName === "INPUT"),
+        isArrow = k === "ArrowLeft" || k === "ArrowRight" || k === "ArrowUp" || k === "ArrowDown";
+
+    if (k === "Enter" || k === "Space") {
+      if (onCtl) return;               /* o próprio controle dispara o clique */
+      e.preventDefault(); toggle();
+      return;
+    }
+
+    if (isArrow) {
+      /* deixa o slider de volume trabalhar com as laterais */
+      if (el && el.type === "range" && (k === "ArrowLeft" || k === "ArrowRight")) return;
+      e.preventDefault();
+      if (onCtl || !sheet.hidden) { navigate(k); return; }
+      /* nada focado: as setas viram atalho direto, para mouse e teclado */
+      if (k === "ArrowRight") skip();
+      else if (k === "ArrowLeft") reset();
+      else nudgeVolume(k === "ArrowUp" ? 5 : -5);
+      return;
+    }
+
+    if (!sheet.hidden) return;
+    if (e.key === "r" || e.key === "R") reset();
+    else if (e.key === "s" || e.key === "S") skip();
+    else if (e.key === "t" || e.key === "T") { cfg.tv = !cfg.tv; save(); syncSheet(); }
   });
 
   document.addEventListener("visibilitychange", function(){
