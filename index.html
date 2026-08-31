@@ -112,6 +112,9 @@ body{
 .clock .dig{ width:.5em; text-align:center; }
 .app.paused .clock{ opacity:.34; }
 .app.urgent .clock{ color:var(--accent); }
+/* No rola o número carrega a cor que vai esquentando: é o elemento que a
+   pessoa está olhando de qualquer forma. */
+.app[data-phase="work"] .clock{ color:var(--accent); }
 .sub{
   margin-top:10px;
   font:600 13px/1 var(--ui);
@@ -842,6 +845,44 @@ body.tv-mode .btn:focus, body.tv-mode .icon:focus{
     clock.innerHTML = html;
   }
 
+  /* A cor do rola percorre o matiz: 140 graus (verde) até 0 (vermelho),
+     passando naturalmente por amarelo e laranja no caminho. A curva com
+     expoente 2.2 segura o verde na maior parte do tempo e despenca no fim,
+     que é a sensação de fôlego acabando — no último terço a queda é rápida,
+     e nos 10 segundos finais já chegou no vermelho, seja a rola de 3 ou de
+     10 minutos. A saturação sobe junto, deixando o fim mais gritante. */
+  var lastHue = -1;
+  function heatColor(){
+    var full = dur("work") * 1000;
+    if (full <= 0) return null;
+    var t = Math.max(0, Math.min(1, 1 - st.leftMs / full));
+    return { h: 140 * (1 - Math.pow(t, 2.2)), s: 68 + 24 * t };
+  }
+
+  function paintHeat(){
+    if (st.phase !== "work") {
+      if (lastHue !== -1) {
+        lastHue = -1;
+        ["--accent", "--wash", "--on-accent"].forEach(function(v){
+          app.style.removeProperty(v);
+          document.documentElement.style.removeProperty(v);
+        });
+      }
+      return;
+    }
+    var c = heatColor();
+    if (!c || Math.abs(c.h - lastHue) < 0.4) return;
+    lastHue = c.h;
+    var hue = c.h.toFixed(1), sat = c.s.toFixed(0);
+    var accent = "hsl(" + hue + "," + sat + "%,57%)",
+        wash = "hsla(" + hue + "," + sat + "%,57%,.16)";
+    [app.style, document.documentElement.style].forEach(function(st2){
+      st2.setProperty("--accent", accent);
+      st2.setProperty("--wash", wash);
+      st2.setProperty("--on-accent", "#0A0D11");
+    });
+  }
+
   function render(){
     var done = st.phase === "done";
     paintClock(done ? "00:00" : mmss(st.leftMs));
@@ -868,6 +909,7 @@ body.tv-mode .btn:focus, body.tv-mode .icon:focus{
     totalEl.textContent = mmss(st.total);
     btnPlay.textContent = done ? "Recomeçar" : st.running ? "Pausar" : "Iniciar";
 
+    paintHeat();
     restEl.classList.toggle("show", st.phase === "rest");
     document.body.classList.toggle("tv-mode", !!cfg.tv);
     app.dataset.phase = st.phase;

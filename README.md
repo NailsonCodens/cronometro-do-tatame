@@ -12,6 +12,10 @@ sem dependência: abre no celular, no navegador ou em qualquer hospedagem estát
 - Os ajustes ficam salvos no aparelho
 - Modo TV para usar espelhado ou num TV Box: tudo maior e com margem contra o
   overscan que quase toda TV aplica
+- A cor do rola esquenta ao longo do tempo: verde no começo, amarelo, laranja e
+  vermelho no fim, com uma curva que segura o verde e despenca nos últimos
+  segundos. O descanso fica azul, sem gradiente, para separar as duas coisas de
+  longe
 
 ## Uso
 
