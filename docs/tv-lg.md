@@ -196,6 +196,35 @@ Reinstalar em cima. Não precisa desinstalar, nem repetir o Key Server.
 Quando a sessão de Dev Mode expirar, o script falha na conexão: abra o app
 Developer Mode na TV e aperte **EXTEND**.
 
+## 7b. Mais de uma TV com a mesma conta
+
+A conta de desenvolvedor **não está amarrada a nenhuma TV**. Dá para repetir o
+processo em quantas quiser, sem novo cadastro.
+
+Cada TV, porém, tem o seu próprio: instalação do app Developer Mode, sessão de
+Dev Mode (com validade independente), IP e passphrase do Key Server.
+
+O nome do aparelho no `ares-setup-device` define o arquivo da chave —
+`--add tv` gera `~/.ssh/tv_webos`. Use nomes diferentes e as duas convivem:
+
+```sh
+ares-setup-device --add academia \
+  --info "host=192.168.0.42" --info "port=9922" \
+  --info "username=prisoner" --info "passphrase=XXXXXX"
+ares-novacom --device academia --getkey     # gera ~/.ssh/academia_webos
+
+./install-tv.sh 192.168.0.42 XXXXXX academia
+```
+
+Se a outra TV **não** for webOS Lite e for de geração mais nova, vale testar o
+`ares-install` primeiro: o problema do `ssh-rsa` é de TV antiga, e numa que
+negocie algoritmo moderno a ferramenta oficial funciona e o roteio manual deixa
+de ser necessário.
+
+```sh
+ares-install --device academia webos/*.ipk
+```
+
 ## 8. Comandos úteis na TV
 
 Todos com `-i`, em segundo plano, gravando em arquivo.

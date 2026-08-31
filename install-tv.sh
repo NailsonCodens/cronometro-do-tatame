@@ -6,17 +6,30 @@
 # não há como ensinar. Aqui usamos o ssh do sistema, que aceita o algoritmo
 # antigo por opção, e chamamos o mesmo serviço Luna que o ares-install chamaria.
 #
-# Uso:  ./install-tv.sh <IP-DA-TV> <PASSPHRASE-DO-KEY-SERVER>
+# Uso:  ./install-tv.sh <IP-DA-TV> <PASSPHRASE-DO-KEY-SERVER> [NOME-DO-APARELHO]
+#
+# O nome do aparelho é o mesmo usado no ares-setup-device e define o arquivo da
+# chave (~/.ssh/<nome>_webos). Padrão "tv". Para uma segunda TV, cadastre com
+# outro nome e passe-o aqui — as duas convivem sem conflito.
 set -e
 cd "$(dirname "$0")"
 
 IP="$1"
 PASS="$2"
-KEY="$HOME/.ssh/tv_webos"
+DEV="${3:-tv}"
+KEY="$HOME/.ssh/${DEV}_webos"
 APPID="com.nailson.tatame"
 
-[ -n "$IP" ] && [ -n "$PASS" ] || { echo "uso: ./install-tv.sh <IP-DA-TV> <PASSPHRASE>"; exit 1; }
-[ -f "$KEY" ] || { echo "chave não encontrada. Rode antes:"; echo "  ares-novacom --device tv --getkey"; exit 1; }
+[ -n "$IP" ] && [ -n "$PASS" ] || {
+  echo "uso: ./install-tv.sh <IP-DA-TV> <PASSPHRASE> [NOME-DO-APARELHO]"; exit 1
+}
+[ -f "$KEY" ] || {
+  echo "chave $KEY não encontrada. Cadastre o aparelho e pegue a chave:"
+  echo "  ares-setup-device --add $DEV --info \"host=$IP\" --info \"port=9922\" \\"
+  echo "    --info \"username=prisoner\" --info \"passphrase=$PASS\""
+  echo "  ares-novacom --device $DEV --getkey"
+  exit 1
+}
 
 ./build-webos.sh >/dev/null
 IPK=$(ls webos/*.ipk)
@@ -32,7 +45,7 @@ trap 'rm -f "$TMPKEY" "$TMPKEY.pub"' EXIT
 
 SSH="ssh -i $TMPKEY -p 9922 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAcceptedKeyTypes=+ssh-rsa -o HostKeyAlgorithms=+ssh-rsa"
 
-echo "== enviando $IPK =="
+echo "== $DEV ($IP): enviando $IPK =="
 scp -i "$TMPKEY" -P 9922 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
     -o PubkeyAcceptedKeyTypes=+ssh-rsa -o HostKeyAlgorithms=+ssh-rsa \
     "$IPK" "prisoner@$IP:/tmp/tatame.ipk" 2>&1 | grep -viE 'warning: perman' || true
