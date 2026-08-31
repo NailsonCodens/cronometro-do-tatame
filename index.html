@@ -112,16 +112,6 @@ body{
   margin-top:14px; font:500 11px/1 var(--ui); letter-spacing:.14em;
   text-transform:uppercase; color:var(--muted); opacity:.55;
 }
-/* A altura fica reservada mesmo quando não há frase, senão o relógio pula
-   de posição a cada troca de etapa. */
-.quote{
-  margin:clamp(12px,2.6vh,22px) 0 0; min-height:2.9em; max-width:40ch;
-  font:600 clamp(13px,3.5vw,17px)/1.45 var(--ui);
-  color:var(--accent); text-align:center; text-wrap:balance;
-  opacity:0; transition:opacity .35s var(--fx), color .45s var(--fx);
-}
-.quote.show{ opacity:1; }
-.app.noquote .quote{ display:none; }
 
 /* ---------- controles ---------- */
 .controls{ display:flex; gap:10px; align-items:center; justify-content:center; padding:0 16px 18px; }
@@ -154,7 +144,6 @@ body{
   .clock{ font-size:min(26vw,40vh); }
   .sub{ margin-top:7px; }
   .hint{ margin-top:9px; }
-  .quote{ max-width:56ch; min-height:1.6em; margin-top:clamp(8px,1.8vh,14px); }
   .controls{ padding:0 16px 13px; }
   .controls .btn-main{ height:clamp(50px,13vh,68px); max-width:340px; }
   .controls .btn-ghost{ height:clamp(50px,13vh,68px); width:clamp(50px,9vw,68px); }
@@ -278,7 +267,6 @@ body{
     <div class="clock" id="clock"><span class="dig">0</span><span class="dig">5</span><span class="sep">:</span><span class="dig">0</span><span class="dig">0</span></div>
     <div class="sub" id="sub">Rola 1</div>
     <div class="hint" id="hint">Toque para começar</div>
-    <p class="quote" id="quote"></p>
   </main>
 
   <nav class="controls">
@@ -370,10 +358,6 @@ body{
         <label>Manter a tela ligada</label>
         <button class="switch" data-tog="wake" aria-pressed="true" aria-label="Manter a tela ligada"></button>
       </div>
-      <div class="row">
-        <label>Frases<small>Aparecem no descanso e na preparação, nunca durante o rola</small></label>
-        <button class="switch" data-tog="phrases" aria-pressed="true" aria-label="Frases"></button>
-      </div>
     </div>
 
     <div class="sheet-actions">
@@ -390,7 +374,7 @@ body{
   "use strict";
 
   /* ---------------- configuração ---------------- */
-  var DEFAULTS = { work:300, rest:60, prep:10, rounds:0, volume:90, sound:true, cues:true, vibrate:true, wake:true, phrases:true };
+  var DEFAULTS = { work:300, rest:60, prep:10, rounds:0, volume:90, sound:true, cues:true, vibrate:true, wake:true };
   var LIMITS = { work:[30,3600], rest:[0,900], prep:[0,120], rounds:[0,30] };
   var KEY = "tatame-timer-v1";
   var cfg = Object.assign({}, DEFAULTS);
@@ -410,77 +394,10 @@ body{
     return 0;
   }
 
-  /* Metade brincadeira de academia, metade conselho de verdade. Aparecem na
-     preparação, no descanso e no fim — nunca durante o rola. */
-  var QUOTES = [
-    "É só fugir o quadril.",
-    "Se apertar, é porque tá funcionando.",
-    "Bate antes de estalar.",
-    "Dá pra respirar? Então não é mata-leão.",
-    "A guarda não passou. Você só tá conhecendo ela melhor.",
-    "Perdeu as costas? Considere aula particular.",
-    "Deu ruim? Puxa pra guarda e finge que foi proposital.",
-    "Cinco minutos é rápido. Cinco minutos na montada, não.",
-    "Ninguém escapou de mata-leão explicando que se distraiu.",
-    "Não sabe o que fazer? Foge o quadril de novo.",
-    "Kimono lavado rende mais. Cientificamente comprovado.",
-    "Todo faixa preta já foi enrolado por um azul teimoso.",
-    "Não existe rola fácil, existe parceiro educado.",
-    "Aperta a faixa e volta.",
-    "Você não perdeu, você coletou dados.",
-    "Aquecimento não é opcional, é seguro de joelho.",
-    "Se acabou a força, era força que você estava usando.",
-    "Descansa de verdade nesse minuto. O próximo rola cobra.",
-    "Água também é técnica. Bebe.",
-    "O tatame não mente.",
-    "Técnica é o que sobra quando a força acaba.",
-    "Consistência bate talento. Toda vez.",
-    "Faixa é o pano que marca o tempo em que você não desistiu.",
-    "Quem chegou no tatame já venceu a parte difícil do dia.",
-    "Você fica bom no que treina, não no que assiste.",
-    "Rola com quem te aperta. É ali que você cresce.",
-    "Respira pelo nariz, pensa devagar, move menos.",
-    "Errar devagar é aprender. Errar rápido é só cansar.",
-    "Um por cento por dia. Sem pressa e sem parar.",
-    "O melhor jogo é o que você repete, não o que você conhece.",
-    "Faixa branca não tem dia ruim, tem dia de aprender.",
-    "Cansaço passa. Técnica fica."
-  ];
-
-  /* Baralho embaralhado: roda a lista toda antes de repetir qualquer frase. */
-  var deck = [];
-  function nextQuote(){
-    if (!deck.length) {
-      deck = QUOTES.slice();
-      for (var i = deck.length - 1; i > 0; i--) {
-        var j = Math.floor(Math.random() * (i + 1)), t = deck[i];
-        deck[i] = deck[j]; deck[j] = t;
-      }
-    }
-    return deck.pop();
-  }
-
   var $ = function(id){ return document.getElementById(id); };
   var app = $("app"), clock = $("clock"), sub = $("sub"), hint = $("hint"),
       phaseEl = $("phase"), fill = $("fill"), totalEl = $("total"),
-      btnPlay = $("btn-play"), sheet = $("sheet"), quoteEl = $("quote");
-
-  var quoteUntil = 0, quoteTimer = null;
-  function showQuote(text){
-    if (quoteTimer) clearTimeout(quoteTimer);
-    quoteEl.classList.remove("show");
-    quoteTimer = setTimeout(function(){
-      quoteTimer = null;
-      if (!cfg.phrases || st.phase === "work") return;
-      quoteEl.textContent = text;
-      quoteEl.classList.add("show");
-    }, 240);
-  }
-  function hideQuote(){
-    if (quoteTimer) { clearTimeout(quoteTimer); quoteTimer = null; }
-    quoteEl.classList.remove("show");
-    quoteUntil = 0;
-  }
+      btnPlay = $("btn-play"), sheet = $("sheet");
 
   /* ---------------- áudio ---------------- */
   /* Alto-falante de celular quase não reproduz grave, então os avisos vivem entre
@@ -741,14 +658,7 @@ body{
     totalEl.textContent = mmss(st.total);
     btnPlay.textContent = done ? "Recomeçar" : st.running ? "Pausar" : "Iniciar";
 
-    if (cfg.phrases && st.phase !== "work") {
-      if (Date.now() >= quoteUntil) { showQuote(nextQuote()); quoteUntil = Date.now() + 9000; }
-    } else {
-      hideQuote();
-    }
-
     app.dataset.phase = st.phase;
-    app.classList.toggle("noquote", !cfg.phrases);
     app.classList.toggle("running", st.running);
     app.classList.toggle("paused", !st.running && !done);
     app.classList.toggle("urgent", st.running && st.phase !== "done" && st.leftMs <= 10000);
