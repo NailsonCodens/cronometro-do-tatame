@@ -222,6 +222,56 @@ body.tv-mode .row label{ font-size:18px; }
 body.tv-mode .val{ font-size:21px; min-width:88px; }
 body.tv-mode .step{ width:46px; height:46px; }
 
+/* ---------- modo TV: interface de 3 metros de distância ----------
+   Foco que se lê do outro lado do tatame: o botão selecionado ACENDE, não
+   ganha só um contorno fino. E os ajustes ocupam a tela toda, porque painel
+   deslizante de canto é linguagem de celular, não de TV. */
+body.tv-mode .btn:focus, body.tv-mode .icon:focus, body.tv-mode .step:focus,
+body.tv-mode .preset:focus, body.tv-mode .switch:focus,
+body.tv-mode .link:focus, body.tv-mode .close:focus{
+  outline:none;
+  box-shadow:0 0 0 4px var(--chalk);
+  transform:scale(1.05);
+}
+body.tv-mode .btn-ghost:focus, body.tv-mode .icon:focus,
+body.tv-mode .step:focus, body.tv-mode .preset:focus, body.tv-mode .link:focus{
+  background:var(--accent); color:var(--on-accent); border-color:var(--accent);
+}
+body.tv-mode .hint{ display:none; }
+body.tv-mode .app{ padding:4.5vmin 6vmin; }
+body.tv-mode .bar{ padding:0 0 clamp(6px,1vh,16px); }
+body.tv-mode .controls{ padding:clamp(8px,1.4vh,20px) 0 0; gap:clamp(12px,1.4vw,22px); }
+body.tv-mode .sub{ letter-spacing:.3em; }
+body.tv-mode .rest{ font-size:clamp(16px,1.8vw,26px); }
+
+body.tv-mode .sheet{ place-items:stretch; background:rgba(4,6,9,.94); }
+body.tv-mode .card{
+  width:100%; max-width:none; height:100%; max-height:none;
+  border:0; border-radius:0; background:transparent;
+  padding:5vmin 9vmin; overflow-y:auto;
+}
+body.tv-mode .card h2{ font-size:clamp(26px,2.8vw,46px); margin-bottom:6px; }
+body.tv-mode .card p.lead{ font-size:clamp(14px,1.3vw,20px); margin-bottom:clamp(14px,2vh,28px); }
+body.tv-mode .group{ margin-bottom:clamp(14px,2.2vh,30px); }
+body.tv-mode .group-title{ font-size:clamp(11px,1.1vw,16px); letter-spacing:.26em; }
+body.tv-mode .row{ padding:clamp(10px,1.5vh,22px) 0; gap:clamp(16px,2vw,32px); }
+body.tv-mode .row label{ font-size:clamp(17px,1.7vw,27px); }
+body.tv-mode .row small{ font-size:clamp(13px,1.2vw,19px); margin-top:5px; }
+body.tv-mode .val{ font-size:clamp(21px,2vw,33px); min-width:clamp(96px,9vw,150px); }
+body.tv-mode .step{
+  width:clamp(50px,4vw,68px); height:clamp(50px,4vw,68px);
+  font-size:clamp(24px,2.2vw,34px);
+}
+body.tv-mode .range{ width:clamp(160px,16vw,280px); height:clamp(44px,4vh,60px); }
+body.tv-mode .preset{
+  font-size:clamp(15px,1.4vw,22px);
+  padding:clamp(11px,1.3vh,18px) clamp(16px,1.7vw,26px);
+}
+body.tv-mode .link, body.tv-mode .close{
+  font-size:clamp(15px,1.4vw,22px); padding:clamp(14px,1.8vh,24px);
+}
+body.tv-mode .sheet-actions{ gap:clamp(12px,1.4vw,22px); margin-top:clamp(8px,1.4vh,20px); }
+
 /* A legenda só aparece em modo TV num aparelho sem toque: no celular
    espelhado ela seria mentira, porque ali o dedo funciona. */
 .legend{ display:none; }
@@ -246,6 +296,7 @@ body.tv-mode .btn:focus, body.tv-mode .icon:focus{
 }
 .sheet[hidden]{ display:none; }
 .card{
+  user-select:none; -webkit-user-select:none;
   width:100%; max-width:560px;
   max-height:90vh; max-height:90dvh; overflow-y:auto;
   background:var(--panel); border:1px solid var(--line);
@@ -847,16 +898,33 @@ body.tv-mode .btn:focus, body.tv-mode .icon:focus{
     render();
   }
 
-  /* botão de passo com repetição ao segurar */
+  /* O clique é o gatilho universal: mouse, dedo, teclado e o OK do controle de
+     TV todos geram click — e o controle NÃO gera pointerdown, que era o único
+     evento escutado aqui antes. O pointerdown agora só cuida da repetição ao
+     segurar, marcando para o click seguinte não contar em dobro. */
   Array.prototype.forEach.call(document.querySelectorAll("[data-adj]"), function(b){
-    var key = b.dataset.adj, by = parseInt(b.dataset.by, 10), timer = null, rep = null;
+    var key = b.dataset.adj, by = parseInt(b.dataset.by, 10),
+        timer = null, rep = null, held = false;
+
     function stop(){ clearTimeout(timer); clearInterval(rep); timer = rep = null; }
-    b.addEventListener("pointerdown", function(e){
-      e.preventDefault();
+
+    b.addEventListener("click", function(){
+      if (held) { held = false; return; }
       adjust(key, by);
-      timer = setTimeout(function(){ rep = setInterval(function(){ adjust(key, by); }, 90); }, 420);
     });
-    ["pointerup","pointerleave","pointercancel"].forEach(function(ev){ b.addEventListener(ev, stop); });
+
+    b.addEventListener("pointerdown", function(){
+      held = false;
+      timer = setTimeout(function(){
+        held = true;
+        adjust(key, by);
+        rep = setInterval(function(){ adjust(key, by); }, 90);
+      }, 420);
+    });
+
+    ["pointerup","pointerleave","pointercancel"].forEach(function(ev){
+      b.addEventListener(ev, stop);
+    });
   });
 
   Array.prototype.forEach.call(document.querySelectorAll("[data-tog]"), function(b){
