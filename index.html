@@ -647,7 +647,7 @@ body.tv-mode.no-touch .legend{
     g.gain.exponentialRampToValueAtTime(0.0001, at + seconds);
     o.connect(g); g.connect(master);
     o.start(at); o.stop(at + seconds + 0.05);
-    live.push(o);
+    live.push({ o: o, at: at });
   }
 
   /* Contagem final em três níveis: seco de 10 a 4, mais agudo em 3 e 2, e no
@@ -688,28 +688,58 @@ body.tv-mode.no-touch .legend{
     tone(at + 0.34, 392,  0.50, 0.28, "square");
   }
 
+  /* Só cancela o que ainda não começou. Antes cortava tudo, e como a troca de
+     etapa acontece no mesmo instante da buzina, a buzina era interrompida. */
   function clearCues(){
-    for (var i = 0; i < live.length; i++) { try { live[i].stop(); } catch (e) {} }
-    live = [];
+    var agora = ac ? ac.currentTime : 0, fica = [], i, it;
+    for (i = 0; i < live.length; i++) {
+      it = live[i];
+      if (it.at > agora + 0.01) { try { it.o.stop(); } catch (e) {} }
+      else if (it.at + 3 > agora) fica.push(it);
+    }
+    live = fica;
   }
 
   /* Agenda o fim da etapa no relógio do Web Audio: o som sai na hora certa
      mesmo se o navegador segurar o JavaScript em segundo plano. */
-  function scheduleCues(){
+  /* Os avisos vão para o relógio do Web Audio, mas só quando o fim está PERTO.
+     Antes tudo era agendado no início da etapa: num rola de 3:30 isso são 210
+     segundos de antecedência, e o motor de áudio da TV não honra agendamento
+     tão distante — os bipes simplesmente não saíam. Agora cada aviso entra numa
+     janela de 20 segundos e é agendado uma única vez. */
+  var CUE_WINDOW = 20, cuesDone = {};
+
+  function resetCues(){
     clearCues();
+    cuesDone = {};
+  }
+
+  function pumpCues(){
     if (!cfg.sound || !st.running || st.phase === "done") return;
     if (!audio()) return;
-    var at = ac.currentTime + (st.endAt - Date.now()) / 1000;
-    if (at <= ac.currentTime + 0.05) return;
+    var leftS = (st.endAt - Date.now()) / 1000;
+    if (leftS > CUE_WINDOW || leftS < -1) return;
+    var base = ac.currentTime + leftS, n, t, key;
+
+    /* Na preparação só os 3 últimos: ela dura 10s por padrão, e bipar o tempo
+       inteiro virava barulho — e era justamente isso que se ouvia "nos 10
+       primeiros segundos". Rola e descanso levam a contagem completa. */
     if (cfg.cues) {
-      for (var n = 10; n >= 1; n--) {
-        var t = at - n;
-        if (t > ac.currentTime + 0.05) blip(t, n === 1 ? 2 : n <= 3 ? 1 : 0);
+      for (n = (st.phase === "prep" ? 3 : 10); n >= 1; n--) {
+        key = "b" + n;
+        t = base - n;
+        if (!cuesDone[key] && t > ac.currentTime + 0.02) {
+          cuesDone[key] = 1;
+          blip(t, n === 1 ? 2 : n <= 3 ? 1 : 0);
+        }
       }
     }
-    var last = cfg.rounds > 0 && st.round >= cfg.rounds;
-    if (st.phase === "work") { if (last) horn(at, 5); else horn(at, 3); }
-    else bell(at);
+    if (!cuesDone.end && base > ac.currentTime + 0.02) {
+      cuesDone.end = 1;
+      var last = cfg.rounds > 0 && st.round >= cfg.rounds;
+      if (st.phase === "work") horn(base, last ? 5 : 3);
+      else bell(base);
+    }
   }
 
   function buzz(pattern){
@@ -778,7 +808,7 @@ body.tv-mode.no-touch .legend{
     st.round = round;
     st.leftMs = dur(phase) * 1000;
     st.endAt = Date.now() + st.leftMs;
-    scheduleCues();
+    resetCues();
     render();
   }
 
@@ -790,7 +820,7 @@ body.tv-mode.no-touch .legend{
     st.last = Date.now();
     st.lastMono = mono();
     st.endAt = Date.now() + Math.max(0, st.leftMs);
-    scheduleCues();
+    resetCues();
     keepAwake();
     render();
   }
@@ -821,7 +851,7 @@ body.tv-mode.no-touch .legend{
     if (st.phase === "done") { reset(); return; }
     st.endAt = Date.now();
     advance();
-    scheduleCues();
+    resetCues();
     render();
   }
 
@@ -848,8 +878,9 @@ body.tv-mode.no-touch .legend{
         if (st.phase === "done") break;
       }
       if (st.running) st.leftMs = Math.max(0, st.endAt - now);
+      pumpCues();
       /* se o app voltou do segundo plano no meio de outra etapa, realinha os avisos */
-      if (st.running && guard > 0) scheduleCues();
+      if (st.running && guard > 0) resetCues();
     }
     render();
   }
@@ -1104,8 +1135,8 @@ body.tv-mode.no-touch .legend{
       cfg[k] = !cfg[k];
       save();
       syncSheet();
-      if (k === "sound") { if (cfg.sound) { audio(); scheduleCues(); } else clearCues(); }
-      if (k === "cues") scheduleCues();
+      if (k === "sound") { if (cfg.sound) { audio(); resetCues(); } else clearCues(); }
+      if (k === "cues") resetCues();
       if (k === "wake") { if (cfg.wake) keepAwake(); else releaseAwake(); }
     });
   });
@@ -1296,7 +1327,7 @@ body.tv-mode.no-touch .legend{
       st.lastMono = mono();
       loop();
       keepAwake();
-      scheduleCues();
+      resetCues();
     }
   });
 

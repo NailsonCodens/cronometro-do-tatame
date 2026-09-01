@@ -358,6 +358,10 @@ Testado nas duas: uma webOS **5.6.2** e uma **3.9.2**. A de 3.x é brutal:
   tela — o sintoma é conteúdo cortado. `vh` e `vw` existem desde o Chromium 20,
   funcionam em toda geração de webOS e se ajustam sozinhos. São a melhor
   ferramenta aqui justamente porque `clamp()` não existe antes do 79.
+- **Não agende áudio muito no futuro.** O Web Audio da TV não honra
+  agendamento de dezenas de segundos à frente: numa rola de 3:30 os bipes
+  marcados para 210s depois simplesmente não saíam. Agende numa janela curta
+  (20s aqui) e reavalie a cada tique, marcando cada aviso uma única vez.
 - **Não use fonte remota num app de TV.** O `<link>` do Google Fonts é
   bloqueante: sem internet a TV espera o timeout antes de renderizar, e depois
   ainda troca o desenho das letras. Subsetar a fonte aos glifos que o app
