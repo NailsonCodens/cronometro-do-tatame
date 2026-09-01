@@ -196,6 +196,25 @@ Reinstalar em cima. Não precisa desinstalar, nem repetir o Key Server.
 Quando a sessão de Dev Mode expirar, o script falha na conexão: abra o app
 Developer Mode na TV e aperte **EXTEND**.
 
+### `resolution` no appinfo.json tem de bater com a tela
+
+Foi a causa raiz da tela cortada. Declarando `"resolution": "1920x1080"` numa
+TV que compõe a 1280x720, o app desenha numa área maior que a exibida e a TV
+mostra apenas o recorte superior esquerdo — 1280/1920 = 2/3 da largura e
+720/1080 = 2/3 da altura, o que a pessoa descreve como "só metade da tela".
+
+Medido com o beacon, antes e depois:
+
+| | `resolution` 1920x1080 | `resolution` 1280x720 |
+| --- | --- | --- |
+| `window.innerWidth/Height` | 1920x1080 | 1280x720 |
+| `screen.width/height` | 1280x720 | 1280x720 |
+| `devicePixelRatio` | 0.711 | 1.067 |
+
+**Declarar 1280x720 é a escolha segura para uma só build.** Numa TV Full HD o
+app é apenas escalado para cima, e com o layout em vh/vw ele fica idêntico. O
+contrário — declarar 1080p — corta a tela em TV HD.
+
 ### Duas coisas que fazem a atualização parecer não ter pegado
 
 1. **Reinstalar com o app aberto não recarrega a página.** A webOS mantém a

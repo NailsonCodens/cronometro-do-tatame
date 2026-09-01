@@ -9,6 +9,6 @@
   "icon": "icon.png",
   "largeIcon": "largeIcon.png",
   "bgColor": "#07090C",
-  "resolution": "1920x1080",
+  "resolution": "1280x720",
   "disableBackHistoryAPI": true
 }
