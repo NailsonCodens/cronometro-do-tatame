@@ -215,6 +215,17 @@ Medido com o beacon, antes e depois:
 app é apenas escalado para cima, e com o layout em vh/vw ele fica idêntico. O
 contrário — declarar 1080p — corta a tela em TV HD.
 
+### Faça o script verificar, não presumir
+
+A primeira versão do `install-tv.sh` imprimia "Pronto" mesmo quando o `scp`
+falhava, porque a saída passava por um `grep` e o status de erro se perdia no
+pipe — `set -e` não pega falha de comando no meio de pipeline. Resultado: dava
+para achar que a correção estava na TV quando nem havia conectado.
+
+A versão atual checa três coisas antes de dizer que deu certo: se a porta 9922
+responde (a sessão de Dev Mode expira em ~50h), se o `scp` concluiu, e por fim
+compara o `cksum` do arquivo local com o do arquivo instalado na TV.
+
 ### Duas coisas que fazem a atualização parecer não ter pegado
 
 1. **Reinstalar com o app aberto não recarrega a página.** A webOS mantém a

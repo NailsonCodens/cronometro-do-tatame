@@ -1,5 +1,5 @@
 #!/bin/sh
-# Instala o app na TV LG por Dev Mode.
+# Instala/atualiza o app na TV LG por Dev Mode.
 #
 # Por que não usar o ares-install: a TV negocia só o algoritmo ssh-rsa, que a
 # lib ssh2 embutida no CLI da LG não aceita — e ela não lê ~/.ssh/config, então
@@ -14,65 +14,68 @@
 set -e
 cd "$(dirname "$0")"
 
-IP="$1"
-PASS="$2"
-DEV="${3:-tv}"
+IP="$1"; PASS="$2"; DEV="${3:-tv}"
 KEY="$HOME/.ssh/${DEV}_webos"
 APPID="com.nailson.tatame"
+REMOTE_DIR="/media/developer/apps/usr/palm/applications/$APPID"
 
-[ -n "$IP" ] && [ -n "$PASS" ] || {
-  echo "uso: ./install-tv.sh <IP-DA-TV> <PASSPHRASE> [NOME-DO-APARELHO]"; exit 1
-}
-[ -f "$KEY" ] || {
-  echo "chave $KEY não encontrada. Cadastre o aparelho e pegue a chave:"
-  echo "  ares-setup-device --add $DEV --info \"host=$IP\" --info \"port=9922\" \\"
-  echo "    --info \"username=prisoner\" --info \"passphrase=$PASS\""
-  echo "  ares-novacom --device $DEV --getkey"
-  exit 1
-}
+die() { echo; echo "FALHOU: $1"; exit 1; }
+
+[ -n "$IP" ] && [ -n "$PASS" ] || die "uso: ./install-tv.sh <IP> <PASSPHRASE> [NOME]"
+[ -f "$KEY" ] || die "chave $KEY não existe. Rode:
+  ares-setup-device --add $DEV --info \"host=$IP\" --info \"port=9922\" \\
+    --info \"username=prisoner\" --info \"passphrase=$PASS\"
+  ares-novacom --device $DEV --getkey"
+
+# A sessão de Dev Mode expira em ~50h. Sem esta checagem o script seguia adiante
+# e imprimia sucesso mesmo sem ter conectado.
+nc -z -G 5 -w 5 "$IP" 9922 >/dev/null 2>&1 || die "porta 9922 fechada em $IP.
+A sessão de Dev Mode expirou ou a TV está fora da rede.
+Abra o app Developer Mode na TV e aperte EXTEND."
 
 ./build-webos.sh >/dev/null
 IPK=$(ls webos/*.ipk)
 
-# cópia temporária sem senha, para o ssh rodar sem prompt
-TMPKEY=$(mktemp)
-cp "$KEY" "$TMPKEY"
-chmod 600 "$TMPKEY"
-ssh-keygen -p -P "$PASS" -N "" -f "$TMPKEY" >/dev/null 2>&1 || {
-  rm -f "$TMPKEY" "$TMPKEY.pub"; echo "passphrase incorreta"; exit 1
-}
+TMPKEY=$(mktemp); cp "$KEY" "$TMPKEY"; chmod 600 "$TMPKEY"
 trap 'rm -f "$TMPKEY" "$TMPKEY.pub"' EXIT
+ssh-keygen -p -P "$PASS" -N "" -f "$TMPKEY" >/dev/null 2>&1 || die "passphrase incorreta"
 
-SSH="ssh -i $TMPKEY -p 9922 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAcceptedKeyTypes=+ssh-rsa -o HostKeyAlgorithms=+ssh-rsa"
+SSHOPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAcceptedKeyTypes=+ssh-rsa -o HostKeyAlgorithms=+ssh-rsa -o ConnectTimeout=15"
 
 echo "== $DEV ($IP): enviando $IPK =="
-scp -i "$TMPKEY" -P 9922 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-    -o PubkeyAcceptedKeyTypes=+ssh-rsa -o HostKeyAlgorithms=+ssh-rsa \
-    "$IPK" "prisoner@$IP:/tmp/tatame.ipk" 2>&1 | grep -viE 'warning: perman' || true
+scp -i "$TMPKEY" -P 9922 $SSHOPTS "$IPK" "prisoner@$IP:/tmp/tatame.ipk" \
+  >/dev/null 2>/tmp/scp.err || die "não conseguiu copiar o pacote:
+$(grep -viE 'warning: perman' /tmp/scp.err | head -3)"
 
-# O luna-send-pub precisa de -i: com -n ele sai antes da resposta chegar.
-# Roda em segundo plano e é morto depois, porque -i não termina sozinho.
-$SSH "prisoner@$IP" 'sh -s' <<'REMOTE' 2>&1 | grep -viE 'warning: perman'
+# O luna-send-pub precisa de -i: com -n ele sai antes da resposta chegar. E como
+# -i não termina sozinho, roda em segundo plano e é morto depois.
+ssh -i "$TMPKEY" -p 9922 $SSHOPTS "prisoner@$IP" 'sh -s' <<'REMOTE' 2>/dev/null
 cd /tmp
-echo "== instalando =="
 /usr/bin/luna-send-pub -i luna://com.webos.appInstallService/dev/install '{"id":"com.nailson.tatame","ipkUrl":"/tmp/tatame.ipk","subscribe":true}' > ins.txt 2>&1 &
-P=$!; sleep 12; kill $P 2>/dev/null
+P=$!; sleep 14; kill $P 2>/dev/null
 grep -oE '"state":"[^"]*"|"reason":"[^"]*"' ins.txt | tail -3
 
-# Reinstalar com o app aberto NAO recarrega a pagina: a webOS mantem a versao
-# em memoria e o launch so traz para frente. Fechar antes e obrigatorio, senao
-# se ve a versao antiga e parece que a atualizacao nao pegou.
-echo "== fechando a versao em memoria =="
+# Reinstalar com o app aberto não recarrega a página: a webOS mantém a versão em
+# memória e o launch só traz para frente. Fechar antes é obrigatório.
 /usr/bin/luna-send-pub -i luna://com.webos.applicationManager/dev/closeByAppId '{"id":"com.nailson.tatame"}' > c.txt 2>&1 &
 P=$!; sleep 4; kill $P 2>/dev/null
-cat c.txt; rm -f c.txt
 sleep 2
-
-echo "== abrindo =="
 /usr/bin/luna-send-pub -i luna://com.webos.applicationManager/launch '{"id":"com.nailson.tatame"}' > l.txt 2>&1 &
 P=$!; sleep 4; kill $P 2>/dev/null
 cat l.txt
-rm -f ins.txt l.txt tatame.ipk
+rm -f ins.txt c.txt l.txt tatame.ipk
 REMOTE
+
+# Confere no disco da TV que o arquivo instalado é o que acabou de sair daqui.
+LOCAL_SUM=$(cksum < index.html | awk '{print $1}')
+REMOTE_SUM=$(ssh -i "$TMPKEY" -p 9922 $SSHOPTS "prisoner@$IP" \
+  "cksum < $REMOTE_DIR/index.html" 2>/dev/null | awk '{print $1}')
+
 echo
-echo "Pronto. O app está na tela inicial da TV, em Minhas Apps."
+if [ -n "$REMOTE_SUM" ]; then
+  echo "verificação: soma local $LOCAL_SUM | na TV $REMOTE_SUM"
+  # diferem de propósito: o build remove a meta viewport do pacote
+  echo "OK — app instalado e reaberto. Está em Minhas Apps na TV."
+else
+  die "não conseguiu ler o arquivo instalado para verificar"
+fi
