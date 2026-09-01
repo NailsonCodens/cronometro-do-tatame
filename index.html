@@ -721,11 +721,9 @@ body.tv-mode.no-touch .legend{
     if (leftS > CUE_WINDOW || leftS < -1) return;
     var base = ac.currentTime + leftS, n, t, key;
 
-    /* Na preparação só os 3 últimos: ela dura 10s por padrão, e bipar o tempo
-       inteiro virava barulho — e era justamente isso que se ouvia "nos 10
-       primeiros segundos". Rola e descanso levam a contagem completa. */
+    /* Contagem completa em toda etapa, preparação incluída. */
     if (cfg.cues) {
-      for (n = (st.phase === "prep" ? 3 : 10); n >= 1; n--) {
+      for (n = 10; n >= 1; n--) {
         key = "b" + n;
         t = base - n;
         if (!cuesDone[key] && t > ac.currentTime + 0.02) {
