@@ -10,6 +10,9 @@ sem dependência: abre no celular, no navegador ou em qualquer hospedagem estát
 - Encaixa em pé e deitado; o número ocupa a tela toda
 - Segura a tela acesa enquanto o cronômetro roda (Screen Wake Lock)
 - Os ajustes ficam salvos no aparelho
+- Zero requisição de rede: as fontes são embutidas, reduzidas aos glifos que o
+  app escreve (170 na interface, 11 no relógio), somando 25 kB. Funciona
+  offline sem trocar o desenho das letras nem esperar timeout
 - Modo TV para usar espelhado ou num TV Box: tudo maior e com margem contra o
   overscan que quase toda TV aplica
 - A cor do rola esquenta ao longo do tempo: verde no começo, amarelo, laranja e
@@ -48,7 +51,8 @@ entra no modo TV sem precisar mexer nos ajustes.
   mantém o som na hora certa mesmo se o navegador segurar o JavaScript em
   segundo plano.
 - Os sons vivem entre 500 Hz e 2 kHz: alto-falante de celular quase não reproduz
-  grave, e essa é a faixa que corta o barulho da academia.
+  grave, e essa é a faixa que corta o barulho da academia. São gerados por
+  oscilador, não são arquivos — outro motivo para funcionar sem rede.
 - Cada dígito ocupa um box de largura fixa porque a fonte Big Shoulders não tem
   tabular figures — sem isso os dois pontos saem do centro e o número escorrega
   a cada segundo.

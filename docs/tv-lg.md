@@ -358,5 +358,10 @@ Testado nas duas: uma webOS **5.6.2** e uma **3.9.2**. A de 3.x é brutal:
   tela — o sintoma é conteúdo cortado. `vh` e `vw` existem desde o Chromium 20,
   funcionam em toda geração de webOS e se ajustam sozinhos. São a melhor
   ferramenta aqui justamente porque `clamp()` não existe antes do 79.
-- **Fontes remotas dependem de internet.** Sem rede, cai para a fonte do
-  sistema; tenha uma pilha de fallback real.
+- **Não use fonte remota num app de TV.** O `<link>` do Google Fonts é
+  bloqueante: sem internet a TV espera o timeout antes de renderizar, e depois
+  ainda troca o desenho das letras. Subsetar a fonte aos glifos que o app
+  escreve e embutir como data URI resolve os dois problemas por pouquíssimo
+  peso — aqui, 170 glifos da interface e 11 do relógio couberam em 25 kB.
+  WOFF2 existe desde o Chromium 36, então serve até na webOS 3.x. Com isso o
+  app não faz nenhuma requisição de rede.
