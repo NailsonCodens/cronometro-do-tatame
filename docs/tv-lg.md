@@ -196,6 +196,24 @@ Reinstalar em cima. Não precisa desinstalar, nem repetir o Key Server.
 Quando a sessão de Dev Mode expirar, o script falha na conexão: abra o app
 Developer Mode na TV e aperte **EXTEND**.
 
+### Duas coisas que fazem a atualização parecer não ter pegado
+
+1. **Reinstalar com o app aberto não recarrega a página.** A webOS mantém a
+   versão em memória e o `launch` só traz para frente. É preciso fechar antes,
+   com `luna://com.webos.applicationManager/dev/closeByAppId`, senão você vê a
+   versão antiga e conclui que a correção falhou. O `install-tv.sh` já faz isso.
+2. **A `<meta viewport>` estorva no app instalado.** Num app webOS a resolução
+   vem do `appinfo.json`; a meta faz o motor montar a página num viewport
+   diferente do da janela e você enxerga só um pedaço do canto superior
+   esquerdo. No navegador ela é essencial, então o `build-webos.sh` a remove
+   apenas ao empacotar.
+
+Medir vale mais que supor: um `new Image().src` apontando para um servidor HTTP
+simples no computador entrega `innerWidth`, `screen`, `devicePixelRatio`,
+`getComputedStyle` e posições reais. Foi assim que ficou claro que o viewport
+do app era 1920x1080, o painel 1280x720 e o conteúdo não transbordava — ou
+seja, o problema não era tamanho.
+
 ## 7b. Mais de uma TV com a mesma conta
 
 A conta de desenvolvedor **não está amarrada a nenhuma TV**. Dá para repetir o

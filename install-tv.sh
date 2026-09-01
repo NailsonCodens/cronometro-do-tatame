@@ -59,6 +59,15 @@ echo "== instalando =="
 P=$!; sleep 12; kill $P 2>/dev/null
 grep -oE '"state":"[^"]*"|"reason":"[^"]*"' ins.txt | tail -3
 
+# Reinstalar com o app aberto NAO recarrega a pagina: a webOS mantem a versao
+# em memoria e o launch so traz para frente. Fechar antes e obrigatorio, senao
+# se ve a versao antiga e parece que a atualizacao nao pegou.
+echo "== fechando a versao em memoria =="
+/usr/bin/luna-send-pub -i luna://com.webos.applicationManager/dev/closeByAppId '{"id":"com.nailson.tatame"}' > c.txt 2>&1 &
+P=$!; sleep 4; kill $P 2>/dev/null
+cat c.txt; rm -f c.txt
+sleep 2
+
 echo "== abrindo =="
 /usr/bin/luna-send-pub -i luna://com.webos.applicationManager/launch '{"id":"com.nailson.tatame"}' > l.txt 2>&1 &
 P=$!; sleep 4; kill $P 2>/dev/null
