@@ -270,6 +270,30 @@ Aprendido testando na TV de verdade, não no emulador.
   acerta onde as media queries de `pointer` erram (TV Box reporta 0).
 - **O foco precisa ser lido a 3 metros.** Contorno fino não serve: o item
   selecionado deve acender e crescer.
+### O motor varia MUITO entre gerações de webOS
+
+| webOS | Chromium | O que já não existe |
+| --- | --- | --- |
+| 3.x | 38 | **CSS Grid**, **`var()`**, `Object.assign`, `Element.closest`, `gap`, `clamp()` |
+| 4.x | 53 | CSS Grid, `gap`, `clamp()` |
+| 5.x | 68 | `gap`, `clamp()`, `inset` |
+| 6.x | 79 | `dvh`, `:focus-visible` |
+
+Testado nas duas: uma webOS **5.6.2** e uma **3.9.2**. A de 3.x é brutal:
+
+- **`Object.assign` exige Chrome 45.** Um único uso lança exceção e **mata o
+  script inteiro** — a tela monta e nada funciona. Sintoma que engana: parece
+  problema de lógica, é incompatibilidade. Trocar por cópia manual com `for in`.
+- **CSS Grid exige Chromium 57.** Sem ele o container vira bloco e tudo empilha
+  no canto superior esquerdo. Flexbox existe desde o 29 e faz o mesmo aqui:
+  `display:flex; flex-direction:column` no lugar de `grid-template-rows`, e
+  `align-items/justify-content` no lugar de `place-content/place-items`.
+- **`var()` exige Chrome 49.** Sem custom properties **todas** as cores e fontes
+  morrem: fundo branco, texto preto, fonte do sistema. Solução em duas partes:
+  literal antes de cada `var()` no CSS (`color:#EAF0F4; color:var(--chalk);`) e,
+  para a cor que muda no tempo, aplicar direto no estilo dos elementos pelo JS —
+  `--accent` inline também é ignorado ali. Detectar com
+  `CSS.supports("color","var(--probe)")`.
 - **`gap` do flexbox não existe.** Exige Chromium 84 e a webOS 5.x roda 68. Não
   há aviso: todo espaçamento simplesmente vira zero, e aumentar o valor não
   muda nada. Use margem entre irmãos (`> * + * { margin-left: ... }`), que
