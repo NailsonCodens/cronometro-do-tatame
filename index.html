@@ -566,7 +566,13 @@ body.tv-mode.no-touch .legend{
   }
 
   /* ---------------- estado ---------------- */
-  var st = { phase:"prep", round:1, running:false, endAt:0, leftMs:0, total:0, last:0 };
+  var st = { phase:"prep", round:1, running:false, endAt:0, leftMs:0, total:0, last:0, lastMono:0 };
+
+  /* Date.now() é o horário do sistema e pode dar saltos (ajuste de NTP, e a TV
+     sincroniza sozinha). performance.now() é monotônico: só avança, e nunca é
+     corrigido. Usar os dois juntos separa "tempo passou" de "hora mudou". */
+  var HAS_PERF = !!(window.performance && window.performance.now);
+  function mono(){ return HAS_PERF ? window.performance.now() : Date.now(); }
 
   function dur(p){
     if (p === "prep") return cfg.prep;
@@ -762,6 +768,7 @@ body.tv-mode.no-touch .legend{
     if (st.phase === "done") { reset(); }
     st.running = true;
     st.last = Date.now();
+    st.lastMono = mono();
     st.endAt = Date.now() + Math.max(0, st.leftMs);
     scheduleCues();
     keepAwake();
@@ -800,10 +807,21 @@ body.tv-mode.no-touch .legend{
 
   /* ---------------- laço ---------------- */
   function loop(){
-    var now = Date.now();
+    var now = Date.now(), nowMono = mono();
     if (st.running) {
-      st.total += Math.min(now - st.last, 5000);
+      var dWall = now - st.last, dMono = nowMono - st.lastMono;
+      /* Salto que o relógio monotônico não viu é mudança de hora, não tempo
+         decorrido: reancora o fim da etapa para o restante não pular. */
+      if (HAS_PERF && Math.abs(dWall - dMono) > 1000) {
+        st.endAt += (dWall - dMono);
+        dWall = dMono;
+      }
+      /* Sem teto aqui. O teto de 5s fazia o TOTAL perder tempo em qualquer
+         travada longa, enquanto o relógio principal, que vem do horário do
+         sistema, não perdia — e os dois números apareciam dessincronizados. */
+      st.total += Math.max(0, dWall);
       st.last = now;
+      st.lastMono = nowMono;
       var guard = 0;
       while (st.running && now >= st.endAt && guard++ < 200) {
         advance();
@@ -820,8 +838,21 @@ body.tv-mode.no-touch .legend{
   /* ---------------- desenho ---------------- */
   var LABEL = { prep:"Preparar", work:"Rola", rest:"Descanso", done:"Fim" };
 
+  /* Contagem regressiva arredonda para CIMA: faltando 4,2s ainda se mostra 5,
+     e cada segundo exibido dura um segundo cheio. */
   function mmss(ms){
-    var s = Math.max(0, Math.ceil(ms / 1000));
+    return fmtClock(Math.ceil(ms / 1000));
+  }
+
+  /* Tempo DECORRIDO arredonda para BAIXO. Com ceil, o TOTAL pulava para 00:01
+     no primeiro milissegundo e ficava até um segundo adiantado em relação ao
+     relógio — era a dessincronia entre os dois números. */
+  function mmssDown(ms){
+    return fmtClock(Math.floor(ms / 1000));
+  }
+
+  function fmtClock(s){
+    s = Math.max(0, s);
     var m = Math.floor(s / 60);
     s = s % 60;
     return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
@@ -978,7 +1009,7 @@ body.tv-mode.no-touch .legend{
     var frac = done || full <= 0 ? 0 : Math.max(0, Math.min(1, st.leftMs / full));
     fill.style.width = (frac * 100).toFixed(2) + "%";
 
-    totalEl.textContent = mmss(st.total);
+    totalEl.textContent = mmssDown(st.total);
     btnPlay.textContent = done ? "Recomeçar" : st.running ? "Pausar" : "Iniciar";
 
     paintHeat();
@@ -1242,6 +1273,7 @@ body.tv-mode.no-touch .legend{
   document.addEventListener("visibilitychange", function(){
     if (document.visibilityState === "visible") {
       st.last = Date.now();
+      st.lastMono = mono();
       loop();
       keepAwake();
       scheduleCues();
