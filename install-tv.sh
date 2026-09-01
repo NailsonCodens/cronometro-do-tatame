@@ -67,15 +67,25 @@ rm -f ins.txt c.txt l.txt tatame.ipk
 REMOTE
 
 # Confere no disco da TV que o arquivo instalado é o que acabou de sair daqui.
-LOCAL_SUM=$(cksum < index.html | awk '{print $1}')
-REMOTE_SUM=$(ssh -i "$TMPKEY" -p 9922 $SSHOPTS "prisoner@$IP" \
-  "cksum < $REMOTE_DIR/index.html" 2>/dev/null | awk '{print $1}')
+# Com retentativa: logo após abrir o app a TV fica ocupada e recusa a conexão,
+# o que fazia esta verificação falhar mesmo com a instalação correta.
+LOCAL_SUM=$(sed '/name="viewport"/d' index.html | cksum | awk '{print $1}')
+REMOTE_SUM=""
+sleep 6
+for try in 1 2 3 4; do
+  REMOTE_SUM=$(ssh -i "$TMPKEY" -p 9922 $SSHOPTS "prisoner@$IP" \
+    "cksum < $REMOTE_DIR/index.html" 2>/dev/null | awk '{print $1}')
+  [ -n "$REMOTE_SUM" ] && break
+  sleep 6
+done
 
 echo
-if [ -n "$REMOTE_SUM" ]; then
-  echo "verificação: soma local $LOCAL_SUM | na TV $REMOTE_SUM"
-  # diferem de propósito: o build remove a meta viewport do pacote
-  echo "OK — app instalado e reaberto. Está em Minhas Apps na TV."
+if [ -z "$REMOTE_SUM" ]; then
+  echo "AVISO: a instalação foi aceita, mas a TV não respondeu para verificar."
+  echo "Provavelmente está ocupada abrindo o app. Confira na tela."
+elif [ "$LOCAL_SUM" = "$REMOTE_SUM" ]; then
+  echo "OK — verificado: o arquivo na TV é idêntico ao daqui ($REMOTE_SUM)."
+  echo "App reaberto. Está em Minhas Apps na TV."
 else
-  die "não conseguiu ler o arquivo instalado para verificar"
+  die "o arquivo na TV ($REMOTE_SUM) difere do esperado ($LOCAL_SUM)"
 fi
