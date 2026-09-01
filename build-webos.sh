@@ -11,7 +11,10 @@ if ! command -v ares-package >/dev/null 2>&1; then
   exit 1
 fi
 
-cp index.html webos/index.html
+# Num app webOS a resolução vem do appinfo.json. Deixar a meta viewport faz o
+# motor antigo montar a página num viewport do dobro do tamanho e mostrar só o
+# quadrante superior esquerdo — no navegador ela é essencial, no app estorva.
+sed '/name="viewport"/d' index.html > webos/index.html
 rm -f webos/*.ipk
 ares-package webos --outdir webos
 
