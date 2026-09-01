@@ -305,5 +305,10 @@ Testado nas duas: uma webOS **5.6.2** e uma **3.9.2**. A de 3.x é brutal:
   Cuidado especial com o atalho `font:` contendo `clamp()` — se não parseia,
   leva peso e família junto.
 - **Reserve margem contra overscan.** Quase toda TV corta a borda da imagem.
+- **Não dimensione a interface de TV em px fixo.** TV LG de linha de entrada
+  costuma ser HD (1366x768), não Full HD, e px calculado para 1080p estoura a
+  tela — o sintoma é conteúdo cortado. `vh` e `vw` existem desde o Chromium 20,
+  funcionam em toda geração de webOS e se ajustam sozinhos. São a melhor
+  ferramenta aqui justamente porque `clamp()` não existe antes do 79.
 - **Fontes remotas dependem de internet.** Sem rede, cai para a fonte do
   sistema; tenha uma pilha de fallback real.
