@@ -114,3 +114,4 @@ e o que não é óbvio ao escrever um app web para TV.
 | `build-webos.sh` | Copia o index.html e gera o `.ipk` |
 | `install-tv.sh` | Envia e instala o `.ipk` na TV por Dev Mode |
 | `docs/tv-lg.md` | Guia completo de instalação e desenvolvimento para TV LG |
+| `renova-devmode.sh` | Renova a sessão de Dev Mode pela API da LG (999h por vez) |

@@ -51,6 +51,36 @@ outra rede. A descoberta por SSDP (`ares-setup-device --search`) costuma não
 achar nada mesmo com tudo certo — não use isso como diagnóstico. Varrer a rede
 inteira é lento; olhe primeiro `arp -an` e teste só os IPs que já apareceram.
 
+### Renove pela API, não pelo botão EXTEND
+
+Quando a sessão expira, a LG **desinstala** os apps de Dev Mode — o app some
+sozinho. O botão EXTEND na TV dá 50 horas. A API da LG dá **999 horas (~41
+dias)** e roda do computador, sem tocar na TV:
+
+```sh
+# o token está na própria TV
+ssh ... prisoner@<ip> 'cat /var/luna/preferences/devmode_enabled'
+
+curl "https://developer.lge.com/secure/ResetDevModeSession.dev?sessionToken=<token>"
+curl "https://developer.lge.com/secure/CheckDevModeSession.dev?sessionToken=<token>"
+```
+
+`ResetDevModeSession` responde `{"result":"success"}` e `CheckDevModeSession`
+devolve o tempo restante no campo `errorMsg`, no formato `HH:MM:SS`.
+
+O `renova-devmode.sh` do repositório faz isso, lendo os tokens de
+`~/.lg-devmode-tokens` — fora do repositório, porque este é público. Há um
+agendamento diário no cron.
+
+**O token parece ser da conta, não do aparelho:** duas TVs diferentes deram o
+mesmo valor. Uma renovação cobre todas.
+
+**Importante para TV sem internet:** a renovação chega ao servidor da LG, mas a
+TV precisa se conectar em algum momento para saber que foi renovada. Com 999
+horas de folga, basta ela ver a rede uma vez por mês. Numa TV permanentemente
+offline o Dev Mode acaba caindo de qualquer forma, e aí o caminho é a Content
+Store.
+
 **A sessão expira em ~50 horas.** O campo *Remain Session* no app mostra o que
 resta e o botão **EXTEND** renova, desde que a TV esteja na rede. Se zerar, não
 dá mais para estender: religue o Dev Mode. Ele também se desliga após 10
