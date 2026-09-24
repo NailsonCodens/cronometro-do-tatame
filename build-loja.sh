@@ -13,6 +13,7 @@ cd "$(dirname "$0")"
 # imagem fica pior nos modelos UHD. Como o layout é todo em vh/vw, o mesmo HTML
 # serve aos dois — muda apenas a resolução declarada no appinfo.json.
 SAIDA=webos-loja
+rm -rf "$SAIDA"
 mkdir -p "$SAIDA"
 
 # 1. o app, sem a meta viewport (a resolução vem do appinfo) e sem o brasão
@@ -70,7 +71,14 @@ for RES in 1280x720 1920x1080; do
 }
 JSON
   ares-package "$DIR" --outdir "$DIR" >/dev/null
-  echo "  $RES  ->  $(ls $DIR/*.ipk)  ($(du -h $DIR/*.ipk | cut -f1))"
+  # Os dois .ipk saem com nome idêntico do ares-package; uma cópia com a
+  # resolução no nome evita trocar um pelo outro na hora de subir.
+  case "$RES" in
+    1280x720)  APELIDO=cronometro-tatame-1.0.0-720p.ipk ;;
+    1920x1080) APELIDO=cronometro-tatame-1.0.0-1080p.ipk ;;
+  esac
+  cp "$DIR"/*.ipk "$SAIDA/$APELIDO"
+  echo "  $RES  ->  $SAIDA/$APELIDO  ($(du -h $SAIDA/$APELIDO | cut -f1))"
 done
 
 rm -f "$SAIDA"/icon.png "$SAIDA"/largeIcon.png "$SAIDA"/index.html
