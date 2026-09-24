@@ -6,7 +6,7 @@ and the expected behaviour of each function.
 | | |
 | --- | --- |
 | App name | Cronômetro do Tatame |
-| App ID | com.nailson.tatame |
+| App ID | com.nailson.cronometrotatame |
 | Version | 1.0.0 |
 | Category | Sports / Fitness |
 | Language | Portuguese (pt-BR) |
@@ -40,8 +40,8 @@ focus position is readable from a distance.
 ## Screen 1 — Main screen
 
 Layout, top to bottom: phase label and status dot, total elapsed time, two
-icon buttons (fullscreen, settings); academy crest; large countdown; round
-label; rest message; three buttons (reset, start/pause, skip); remote legend.
+icon buttons (fullscreen, settings); large countdown; round label; rest
+message; three buttons (reset, start/pause, skip); remote legend.
 
 ### Test steps
 
@@ -100,4 +100,3 @@ the background.
 - The app never requests the network. Testing with the TV offline is expected
   to behave identically, including fonts.
 - Text is Portuguese (pt-BR); the audience is Brazilian jiu-jitsu academies.
-- The crest shown on screen is the logo of the academy the app was built for.

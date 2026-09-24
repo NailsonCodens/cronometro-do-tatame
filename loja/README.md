@@ -9,7 +9,8 @@ O que está pronto aqui e o que ainda depende de você.
 | `1-rola-comecando.png` … `5-tela-inicial.png` | Capturas em 1280x720, geradas do app real |
 | `icone-400.png` | Ícone 400x400 para a listagem da loja |
 | `ux-scenario.md` | Documento de cenário de UX exigido pela LG, em inglês |
-| `../webos/*.ipk` | O pacote, gerado por `./build-webos.sh` |
+| `icone-generico-400/130/80.png` | Ícone próprio do app, sem marca de terceiro |
+| `../webos-loja/*.ipk` | O pacote da loja, gerado por `./build-loja.sh` |
 
 As capturas foram feitas com Chrome headless a partir do próprio `index.html`,
 com as transições desligadas — sem isso o tempo virtual do headless congela as
@@ -25,19 +26,21 @@ cores no estado inicial.
 4. **Confirmar os tamanhos de imagem** exigidos: eles aparecem no formulário de
    submissão e mudam de tempos em tempos.
 
-## Uma decisão antes de enviar
+## Duas versões, de propósito
 
-O app mostra o **brasão da D.O Academy**. Numa listagem pública da loja isso
-levanta duas questões: a LG pode pedir comprovação de direito sobre a marca, e
-um app com a marca de uma academia específica faz menos sentido para o público
-geral da loja.
+| | Academia | Loja |
+| --- | --- | --- |
+| Script | `./build-webos.sh` | `./build-loja.sh` |
+| App ID | `com.nailson.tatame` | `com.nailson.cronometrotatame` |
+| Brasão da D.O | sim | **não** |
+| Ícone | o brasão | anel genérico |
+| Relógio | 36vh | 46vh, ocupando o espaço do brasão |
+| Pacote | 180 kB | **56 kB** |
 
-Duas saídas:
+Os ids são diferentes, então as duas convivem na mesma TV sem conflito: você
+segue usando a versão com o brasão nas TVs da academia por Dev Mode, e a
+genérica é a que vai para a loja.
 
-- **Publicar sem o brasão**, como cronômetro genérico de jiu-jitsu. Mais fácil
-  de aprovar e mais útil para outras academias.
-- **Publicar com o brasão**, tendo em mãos a comprovação de que a marca é da
-  academia.
-
-O brasão está embutido como data URI no `index.html`; tirá-lo é uma alteração
-pequena.
+Tirar o brasão evita que a LG peça comprovação de direito sobre a marca, e um
+cronômetro genérico serve a qualquer academia — o que é o ponto de estar numa
+loja pública.

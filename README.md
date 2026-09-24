@@ -113,5 +113,7 @@ e o que não é óbvio ao escrever um app web para TV.
 | `webos/icon.png`, `largeIcon.png` | Ícones 80x80 e 130x130 exigidos pela webOS |
 | `build-webos.sh` | Copia o index.html e gera o `.ipk` |
 | `install-tv.sh` | Envia e instala o `.ipk` na TV por Dev Mode |
+| `build-loja.sh` | Gera a versão da LG Content Store, sem o brasão |
+| `loja/` | Capturas, ícones e documentação para a submissão |
 | `docs/tv-lg.md` | Guia completo de instalação e desenvolvimento para TV LG |
 | `renova-devmode.sh` | Renova a sessão de Dev Mode pela API da LG (999h por vez) |
