@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <!-- Os quatro matizes são os mesmos do gradiente do cronômetro, na ordem
+       em que aparecem durante uma rola: verde, amarelo, laranja, vermelho. -->
+  <rect width="400" height="400" fill="#0B1016"/>
+  <circle cx="200" cy="200" r="132" fill="none" stroke="#1B242E" stroke-width="34"/>
+  <g transform="rotate(-90 200 200)">
+    <circle cx="200" cy="200" r="132" fill="none" stroke="hsl(140,68%,57%)" stroke-width="34" stroke-linecap="butt" stroke-dasharray="165.8 663.6" stroke-dashoffset="-0.0"/>
+    <circle cx="200" cy="200" r="132" fill="none" stroke="hsl(62,80%,57%)" stroke-width="34" stroke-linecap="butt" stroke-dasharray="165.8 663.6" stroke-dashoffset="-172.8"/>
+    <circle cx="200" cy="200" r="132" fill="none" stroke="hsl(30,88%,57%)" stroke-width="34" stroke-linecap="butt" stroke-dasharray="165.8 663.6" stroke-dashoffset="-345.6"/>
+    <circle cx="200" cy="200" r="132" fill="none" stroke="hsl(4,92%,57%)" stroke-width="34" stroke-linecap="butt" stroke-dasharray="165.8 663.6" stroke-dashoffset="-518.4"/>
+  </g>
+  <!-- os dois pontos do relógio -->
+  <rect x="181" y="156" width="38" height="38" rx="11" fill="#EAF0F4"/>
+  <rect x="181" y="222" width="38" height="38" rx="11" fill="#EAF0F4"/>
+</svg>
