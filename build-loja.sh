@@ -9,6 +9,9 @@
 set -e
 cd "$(dirname "$0")"
 
+# A LG recomenda dois pacotes, 1280x720 e 1920x1080: enviando só o de 720p a
+# imagem fica pior nos modelos UHD. Como o layout é todo em vh/vw, o mesmo HTML
+# serve aos dois — muda apenas a resolução declarada no appinfo.json.
 SAIDA=webos-loja
 mkdir -p "$SAIDA"
 
@@ -39,8 +42,18 @@ PY
 cp loja/icone-generico-80.png  "$SAIDA/icon.png"
 cp loja/icone-generico-130.png "$SAIDA/largeIcon.png"
 
-# 3. manifesto com id próprio
-cat > "$SAIDA/appinfo.json" <<'JSON'
+command -v ares-package >/dev/null 2>&1 || {
+  echo "ares-package não encontrado. npm install -g @webos-tools/cli --registry=https://registry.npmjs.org/"
+  exit 1
+}
+
+# 3. um pacote por resolução, mesmo id e mesma versão
+for RES in 1280x720 1920x1080; do
+  DIR="$SAIDA/$RES"
+  rm -rf "$DIR"; mkdir -p "$DIR"
+  cp "$SAIDA/index.html" "$DIR/index.html"
+  cp "$SAIDA/icon.png" "$SAIDA/largeIcon.png" "$DIR/"
+  sed "s/__RES__/$RES/" > "$DIR/appinfo.json" <<'JSON'
 {
   "id": "com.nailson.cronometrotatame",
   "version": "1.0.0",
@@ -52,15 +65,12 @@ cat > "$SAIDA/appinfo.json" <<'JSON'
   "icon": "icon.png",
   "largeIcon": "largeIcon.png",
   "bgColor": "#07090C",
-  "resolution": "1280x720",
+  "resolution": "__RES__",
   "disableBackHistoryAPI": true
 }
 JSON
+  ares-package "$DIR" --outdir "$DIR" >/dev/null
+  echo "  $RES  ->  $(ls $DIR/*.ipk)  ($(du -h $DIR/*.ipk | cut -f1))"
+done
 
-command -v ares-package >/dev/null 2>&1 || {
-  echo "ares-package não encontrado. npm install -g @webos-tools/cli --registry=https://registry.npmjs.org/"
-  exit 1
-}
-rm -f "$SAIDA"/*.ipk
-ares-package "$SAIDA" --outdir "$SAIDA" >/dev/null
-echo "  pacote: $(ls $SAIDA/*.ipk)  ($(du -h $SAIDA/*.ipk | cut -f1))"
+rm -f "$SAIDA"/icon.png "$SAIDA"/largeIcon.png "$SAIDA"/index.html

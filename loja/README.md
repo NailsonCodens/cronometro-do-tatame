@@ -10,11 +10,26 @@ O que está pronto aqui e o que ainda depende de você.
 | `icone-400.png` | Ícone 400x400 para a listagem da loja |
 | `ux-scenario.md` | Documento de cenário de UX exigido pela LG, em inglês |
 | `icone-generico-400/130/80.png` | Ícone próprio do app, sem marca de terceiro |
-| `../webos-loja/*.ipk` | O pacote da loja, gerado por `./build-loja.sh` |
+| `../webos-loja/1280x720/*.ipk` | Pacote para TVs Full HD e HD |
+| `../webos-loja/1920x1080/*.ipk` | Pacote para TVs UHD |
 
 As capturas foram feitas com Chrome headless a partir do próprio `index.html`,
 com as transições desligadas — sem isso o tempo virtual do headless congela as
 cores no estado inicial.
+
+## Preencher no formulário de upload
+
+| Campo | Valor |
+| --- | --- |
+| App ID | `com.nailson.cronometrotatame` |
+| File Version | `1.0.0` (nos dois pacotes) |
+| Resolution | um envio por pacote: `1280x720` e `1920x1080` |
+| Deep Link | não usar |
+
+São **dois arquivos**, mesmo app, mesma versão. A LG recomenda os dois porque
+enviar só o de 720p degrada a imagem nos modelos UHD. O mesmo HTML serve aos
+dois: o layout é em `vh/vw` e escala sozinho — o relógio sai com 291 px em 720p
+e 457 px em 1080p, sem transbordar em nenhum dos dois (verificado).
 
 ## Falta, e só você consegue
 

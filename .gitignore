@@ -5,8 +5,4 @@ dist
 # gerados por build-webos.sh
 webos/index.html
 webos/*.ipk
-webos-loja/index.html
-webos-loja/*.ipk
-webos-loja/icon.png
-webos-loja/largeIcon.png
-webos-loja/appinfo.json
+webos-loja/
