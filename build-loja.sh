@@ -57,7 +57,7 @@ for RES in 1280x720 1920x1080; do
   sed "s/__RES__/$RES/" > "$DIR/appinfo.json" <<'JSON'
 {
   "id": "com.nailson.cronometrotatame",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "vendor": "Nailson Israel",
   "type": "web",
   "main": "index.html",
@@ -66,6 +66,7 @@ for RES in 1280x720 1920x1080; do
   "icon": "icon.png",
   "largeIcon": "largeIcon.png",
   "bgColor": "#07090C",
+  "iconColor": "#0B1016",
   "resolution": "__RES__",
   "disableBackHistoryAPI": true
 }
@@ -74,8 +75,8 @@ JSON
   # Os dois .ipk saem com nome idêntico do ares-package; uma cópia com a
   # resolução no nome evita trocar um pelo outro na hora de subir.
   case "$RES" in
-    1280x720)  APELIDO=cronometro-tatame-1.0.0-720p.ipk ;;
-    1920x1080) APELIDO=cronometro-tatame-1.0.0-1080p.ipk ;;
+    1280x720)  APELIDO=cronometro-tatame-1.0.1-720p.ipk ;;
+    1920x1080) APELIDO=cronometro-tatame-1.0.1-1080p.ipk ;;
   esac
   cp "$DIR"/*.ipk "$SAIDA/$APELIDO"
   echo "  $RES  ->  $SAIDA/$APELIDO  ($(du -h $SAIDA/$APELIDO | cut -f1))"
