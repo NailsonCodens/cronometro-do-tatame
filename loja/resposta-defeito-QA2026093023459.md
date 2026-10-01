@@ -1,21 +1,26 @@
-# Resposta ao defeito QA2026093023459
+# Defeito QA2026093023459
 
-**Problema relatado:** App Icon Background does not match the tile color (P2)
+**Relatado:** App Icon Background does not match the tile color (P2)
 
-Texto para colar na resposta do chamado:
+**Causa real:** o campo "Set an App Tile Color", em Applications > Edit >
+Images, estava em `#000000`, enquanto o fundo do ícone é `#0B1016`. A LG exige
+que sejam exatamente iguais.
+
+**Correção:** trocar o campo do formulário para `#0B1016`. Não exige reenviar o
+pacote nem alterar a imagem do ícone.
+
+O requisito de "fundo em cor sólida, sem gradiente" já era atendido: o fundo é
+chapado e o anel são quatro segmentos de cor sólida.
+
+Texto para a resposta do chamado:
 
 ```
-Fixed in version 1.0.1.
+Fixed.
 
-Cause: the appinfo.json did not declare "iconColor". As the default tile colour
-is white, the launcher drew a white tile behind an icon whose own background is
-dark (#0B1016), producing the mismatch.
+The App Tile Color field was set to #000000 while the app icon background is
+#0B1016. The tile colour has been updated to #0B1016, so it now matches the
+icon background exactly.
 
-Fix: "iconColor": "#0B1016" was added to appinfo.json, matching the icon
-background exactly. No change was made to the icon image itself.
-
-Note: the package previously declared "bgColor": "#07090C", which we now
-understand is ignored from webOS 3.x onwards and never affected the tile.
-
-Updated packages attached as version 1.0.1.
+The icon image itself was not changed. Its background is a single solid colour
+and the ring is drawn with four solid segments, with no gradient anywhere.
 ```
