@@ -8,7 +8,9 @@ O que está pronto aqui e o que ainda depende de você.
 | --- | --- |
 | `1-rola-comecando.png` … `5-tela-inicial.png` | Capturas em 1280x720, geradas do app real |
 | `icone-400.png` | Ícone 400x400 para a listagem da loja |
-| `ux-scenario.md` | Documento de cenário de UX exigido pela LG, em inglês |
+| `ux-scenario.pdf` | **Documento de cenário de UX**, 11 páginas com capturas anotadas |
+| `ux/` | As capturas usadas nele, uma por tela |
+| `../build-ux-scenario.py` | Gera o PDF a partir das capturas |
 | `icone.svg` | Fonte vetorial do ícone; rasterize daqui em qualquer tamanho |
 | `icone-quadrado.svg` | Mesma marca, fundo quadrado cheio |
 | `icone-loja-1024.png` | **Ícone da listagem** (1024x1024, quadrado, sem gradiente no fundo) |
